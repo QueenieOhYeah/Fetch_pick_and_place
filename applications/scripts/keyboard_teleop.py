@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import robot_api
 import rospy
-
 
 import sys, select, termios, tty
 
@@ -66,8 +65,8 @@ if __name__ == "__main__":
     control_speed = 0
     control_turn = 0
     try:
-        print msg
-        print vels(speed, turn)
+        print(msg)
+        print(vels(speed, turn))
         while (1):
             key = getKey()
             if key in moveBindings.keys():
@@ -79,15 +78,15 @@ if __name__ == "__main__":
                 turn += speedBindings[key][1]
                 count = 0
 
-                print vels(speed, turn)
+                print(vels(speed, turn))
                 if (status == 14):
-                    print msg
+                    print(msg)
                 status = (status + 1) % 15
             elif key == ' ':
                 x = 0
                 th = 0
-                control_speed = 0
-                control_turn = 0
+                speed = 0
+                turn = 0
             else:
                 count = count + 1
                 if count > 4:
@@ -96,8 +95,8 @@ if __name__ == "__main__":
                 if (key == '\x03'):
                     break
 
-            target_speed = speed * x
-            target_turn = turn * th
+            target_speed = speed + x
+            target_turn = turn + th
 
             if target_speed > control_speed:
                 control_speed = min(target_speed, control_speed + 0.02)
