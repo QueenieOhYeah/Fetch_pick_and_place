@@ -1,5 +1,5 @@
-# CSE 481C
-Starter code and samples for CSE 481C at the University of Washington, Winter 2019.
+# TECHIN 517
+Starter code and samples for TECHIN 517 at the University of Washington, Spring 2022.
 
 Labs and other documentation are on the **[wiki](https://github.com/cse481wi19/cse481wi19/wiki)**.
 
