@@ -35,7 +35,7 @@ class Torso(object):
                 from Torso.MIN_HEIGHT (0.0) to Torso.MAX_HEIGHT(0.4).
         """
         # Check that the height is between MIN_HEIGHT and MAX_HEIGHT.
-        if height > self.MIN_HEIGHT and height < self.MAX_HEIGHT:
+        if height >= self.MIN_HEIGHT and height <= self.MAX_HEIGHT:
             
             # Create a trajectory point
             point = trajectory_msgs.msg.JointTrajectoryPoint()
