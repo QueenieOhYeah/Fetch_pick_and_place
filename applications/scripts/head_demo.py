@@ -39,14 +39,14 @@ def main():
             return
         frame_id, x, y, z = argv[2], float(argv[3]), float(argv[4]), float(
             argv[5])
-        rospy.logerr('Not implemented.')
+        head.look_at(frame_id, x, y, z)
+        #rospy.logerr('Not implemented.')
     elif command == 'pan_tilt':
         if len(argv) < 4:
             print_usage()
             return
         pan, tilt = float(argv[2]), float(argv[3])
-        head.pan_and_tilt(0.3, 0.3)
-        #rospy.logerr('Not implemented.')
+        head.pan_and_tilt(pan, tilt)
 
     else:
         print_usage()
