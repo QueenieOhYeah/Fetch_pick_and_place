@@ -4,6 +4,9 @@
 # TODO: import ???????_msgs.msg
 # TODO: import ??????????_msgs.msg
 import rospy
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+import actionlib
 
 # TODO: ACTION_NAME = ???
 # TODO: JOINT_NAME = ???
@@ -19,7 +22,8 @@ class Torso(object):
     def __init__(self):
         # TODO: Create actionlib client
         # TODO: Wait for server
-        pass
+        self._client = actionlib.SimpleActionClient('torso_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+        self._client.wait_for_server(rospy.Duration(10))
 
     def set_height(self, height):
         """Sets the torso height.
@@ -31,14 +35,25 @@ class Torso(object):
                 from Torso.MIN_HEIGHT (0.0) to Torso.MAX_HEIGHT(0.4).
         """
         # TODO: Check that the height is between MIN_HEIGHT and MAX_HEIGHT.
+        if height < self.MIN_HEIGHT or height > self.MAX_HEIGHT:
+            raise Exception("INVAID HEIGHT")
         # TODO: Create a trajectory point
+        p = JointTrajectoryPoint()
         # TODO: Set position of trajectory point
+        p.positions.append(height)
         # TODO: Set time of trajectory point
+        p.time_from_start = rospy.Duration(5)
 
-        # TODO: Create goal
         # TODO: Add joint name to list
+        t = JointTrajectory()
+        t.joint_names.append("torso_lift_joint")
+        # TODO: Create goal
+        goal = FollowJointTrajectoryGoal()
         # TODO: Add the trajectory point created above to trajectory
-
+        t.points.append(p)
+        goal.trajectory = t
         # TODO: Send goal
+        self._client.send_goal(goal)
         # TODO: Wait for result
-        rospy.logerr('Not implemented.')
+        self._client.wait_for_result()
+        #rospy.logerr('Not implemented.')
