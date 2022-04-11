@@ -100,9 +100,18 @@
         <div class="flex"></div>
       </div>
       <div class="layout horizontal">
-        <paper-button>Left</paper-button>
-        <paper-button>Back</paper-button>
-        <paper-button>Right</paper-button>
+        <paper-button
+          on-down="_startTurnleft"
+          on-up="_endBaseCommand"
+        >Left</paper-button>
+        <paper-button
+          on-down="_startBackward"
+          on-up="_endBaseCommand"
+        >Back</paper-button>
+        <paper-button
+          on-down="_startTurnright"
+          on-up="_endBaseCommand"
+        >Right</paper-button>
       </div>
     </div>
   </template>
@@ -170,6 +179,78 @@
               x: 0,
               y: 0,
               z: 0 // Set rads/s to turn
+            }
+          });
+        }, 10); // Run this function every 10ms, or approximately 100 times per second.
+      }
+      
+      _startBackward(evt) {
+        evt.preventDefault(); // Prevent right-click menu from showing up after long press on mobile
+        this.status = 'Driving backward...';
+        var baseTopic = this.$.baseTopic; // Get <ros-topic>
+        if (this.baseCommand) {
+          // The timer should not be set at this point, but clear it just in case
+          clearInterval(this.baseCommand);
+        }
+        this.baseCommand = setInterval(function() {
+          baseTopic.publish({
+            linear: {
+              x: -0.1, // Set positive or negative meters/s to drive
+              y: 0,
+              z: 0
+            },
+            angular: {
+              x: 0,
+              y: 0,
+              z: 0 // Set rads/s to turn
+            }
+          });
+        }, 10); // Run this function every 10ms, or approximately 100 times per second.
+      }
+      
+      _startTurnleft(evt) {
+        evt.preventDefault(); // Prevent right-click menu from showing up after long press on mobile
+        this.status = 'Turning Left...';
+        var baseTopic = this.$.baseTopic; // Get <ros-topic>
+        if (this.baseCommand) {
+          // The timer should not be set at this point, but clear it just in case
+          clearInterval(this.baseCommand);
+        }
+        this.baseCommand = setInterval(function() {
+          baseTopic.publish({
+            linear: {
+              x: 0, // Set positive or negative meters/s to drive
+              y: 0,
+              z: 0
+            },
+            angular: {
+              x: 0,
+              y: 0,
+              z: 0.5 // Set rads/s to turn
+            }
+          });
+        }, 10); // Run this function every 10ms, or approximately 100 times per second.
+      }
+      
+      _startTurnright(evt) {
+        evt.preventDefault(); // Prevent right-click menu from showing up after long press on mobile
+        this.status = 'Turning Right...';
+        var baseTopic = this.$.baseTopic; // Get <ros-topic>
+        if (this.baseCommand) {
+          // The timer should not be set at this point, but clear it just in case
+          clearInterval(this.baseCommand);
+        }
+        this.baseCommand = setInterval(function() {
+          baseTopic.publish({
+            linear: {
+              x: 0, // Set positive or negative meters/s to drive
+              y: 0,
+              z: 0
+            },
+            angular: {
+              x: 0,
+              y: 0,
+              z: -0.5 // Set rads/s to turn
             }
           });
         }, 10); // Run this function every 10ms, or approximately 100 times per second.
