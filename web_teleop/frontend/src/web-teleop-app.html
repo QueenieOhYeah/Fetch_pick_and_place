@@ -209,32 +209,33 @@
       
       _setArm() {
         this.status = 'Moving arms...';
-        const DEGS_TO_RADS = MATH.PI / 180
+        const DEGS_TO_RADS = Math.PI / 180
 //        const arms = [DEGS_TO_RADS * this.shoulder_pan, DEGS_TO_RADS * this.shoulder_lift, DEGS_TO_RADS * this.upperarm_roll, DEGS_TO_RADS * this.elbow_flex, DEGS_TO_RADS * this.forearm_roll, DEGS_TO_RADS * this.wrist_flex, DEGS_TO_RADS * this.wrist_roll]
 
 
 //        var arms = [1.5, -0.6, 3.0, 1.0, 3.0, 1.0, 3.0]
-        //var arm = new Float64Array(7);
-        //arm[0] = 1.5
-        arm[1] = -0.6;
-        arm[2] = 3.0;
-        arm[3] = 1.0;
-        arm[4] = 3.0;
-        arm[5] = 1.0;
-        arm[6] = 3.0;
+//        var arm = new Float64Array(7);
+//        arm[0] = 1.5;
+//        arm[1] = -0.6;
+//        arm[2] = 3.0;
+//        arm[3] = 1.0;
+//        arm[4] = 3.0;
+//        arm[5] = 1.0;
+//        arm[6] = 3.0;
+//        console.log("message");
          
         //this.$.armService.call({arms:'[1.5, -0.6, 3.0, 1.0, 3.0, 1.0, 3.0]'});
         this.$.armService.call({
-            shoulder_pan: 0,
-            shoulder_lift: 0,
-            upperarm_roll: 0,
-            elbow_flex: 0,
-            forearm_roll: 0,
-            wrist_flex: 0,
-            wrist_roll: 0
+            shoulder_pan: this.shoulder_pan * DEGS_TO_RADS,
+            shoulder_lift: this.shoulder_lift * DEGS_TO_RADS,
+            upperarm_roll: this.upperarm_roll * DEGS_TO_RADS,
+            elbow_flex: this.elbow_flex * DEGS_TO_RADS,
+            forearm_roll: this.forearm_roll * DEGS_TO_RADS,
+            wrist_flex: this.wrist_flex * DEGS_TO_RADS,
+            wrist_roll: this.wrist_roll * DEGS_TO_RADS
         });
       }
-      
+
       _closeGripper() {
         this.$.gripperSet.call({effort: this.effort});
       }
