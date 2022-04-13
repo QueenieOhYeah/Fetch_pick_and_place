@@ -25,7 +25,9 @@ class JointStateReader(object):
             name: string, the name of the joint whose value we want to read.                           
                                                                                                        
         Returns: the joint value, or None if we do not have a value yet.                               
-        """                                                                                            
+        """
+        if not name:
+            return None                                                                                            
         i = self.data.name.index(name)
         return self.data.position[i]
                                                                                  
