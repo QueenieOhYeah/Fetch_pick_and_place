@@ -1,1 +1,1 @@
-string poseNames
+string[] names
