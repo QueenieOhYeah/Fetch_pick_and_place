@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="map_annotator" type="pickle_node.py" name="pickle_server" />
+  <node pkg="map_annotator" type="interface.py" name="pickle_client" />
+</launch>
