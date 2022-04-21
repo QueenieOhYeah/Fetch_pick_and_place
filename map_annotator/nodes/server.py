@@ -2,7 +2,7 @@
 
 import rospy
 import pickle
-import geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped
 from map_annotator.srv import Save, List, Delete, Goto
 from map_annotator.msg import PoseNames, UserAction
 from interactive_markers.interactive_marker_server import InteractiveMarkerServer
@@ -24,12 +24,12 @@ class MapAnnotationServer(object):
         # Attributes
         self.pickle_file = "fetch_position"
 
-        self.dict = self._unpickling(self._pickle_file)
+        self.dict = self.unpickling(self.pickle_file)
         if self.dict == None:
             self.dict = {}
         #rospy.Subscriber("amcl_pose", geometry_msgs.msg.PoseWithCovarianceStamped, self.callback)
-        self.nav_goal = rospy.Publisher('move_base_simple/goal', PoseStamped)
-        self.pose_names = rospy.Publisher('map_annotator/pose_names', PoseNames, latch=True)
+        self.nav_goal = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size = 10)
+        self.pose_names = rospy.Publisher('map_annotator/pose_names', PoseNames, latch=True, queue_size = 10)
         self.user_action = rospy.Subscriber('map_annotator/user_actions', UserAction, self.callback_user_action)
         self.interactive_marker_server = InteractiveMarkerServer("/map_annotator/map_poses")
         #self.initial_pose = geometry_msgs.msg.Pose()
@@ -88,7 +88,7 @@ class MapAnnotationServer(object):
 
         marker.append(marker_control)
         arrow_marker = Marker()
-        arrow_marker.scale.x = 1
+        arrow_marker.scale.x = 3
         arrow_marker.scale.y = 0.3
         arrow_marker.scale.z = 0.3
         arrow_marker.color.r = 0
@@ -111,6 +111,7 @@ class MapAnnotationServer(object):
         self.interactive_marker_server.insert(marker, self.interactive_marker_callback)
         self.interactive_marker_server.applyChanges()
 
+
     def interactive_marker_callback(self, feedback: InteractiveMarkerFeedback):
         pose = feedback.pose
         stamped_pose = self.pose_to_stampedpose(pose)
@@ -128,7 +129,7 @@ class MapAnnotationServer(object):
             return True
         return False
         
-    def save_pose(self, name, pos: geometry_msgs.msg.PoseStamped):
+    def save_pose(self, name, pos: PoseStamped):
 #        pos = geometry_msgs.msg.PoseStamped()
 #        pos.header = self._data.header
 #        pos.pose = self._data.pose.pose
@@ -153,6 +154,7 @@ class MapAnnotationServer(object):
 
 def main():
     rospy.init_node('map_annotator_node')
+    server = MapAnnotationServer()
     wait_for_time()
     
     
