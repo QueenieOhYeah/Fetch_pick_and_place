@@ -29,14 +29,17 @@ class MapAnnotationServer(object):
         if self.dict == None:
             self.dict = {}
         #rospy.Subscriber("amcl_pose", geometry_msgs.msg.PoseWithCovarianceStamped, self.callback)
+        self.interactive_marker_server = InteractiveMarkerServer("/map_annotator/map_poses")
         self.nav_goal = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size = 10)
         self.pose_names = rospy.Publisher('map_annotator/pose_names', PoseNames, latch=True, queue_size = 10)
         self.user_action = rospy.Subscriber('map_annotator/user_actions', UserAction, self.callback_user_action)
-        self.interactive_marker_server = InteractiveMarkerServer("/map_annotator/map_poses")
         #self.initial_pose = geometry_msgs.msg.Pose()
         # create saved markers
 
-        for key, value in list(self.dict):
+        for key, value in self.dict.items():
+            if DEBUG:
+                print("init")
+                print(value)
             self.create_interactive_marker(key, value)
         
 #    def callback(self, data):
@@ -65,17 +68,17 @@ class MapAnnotationServer(object):
 
     def callback_user_action(self, data: UserAction):
         if data.command == UserAction.CREATE:
-            self.create_interactive_marker(data.name)
+            pose = PoseStamped()
+            self.create_interactive_marker(data.name, pose)
         if data.command == UserAction.DELETE:
             self.delete_pose(data.name)
         if data.command == UserAction.GOTO:
             self.goto_pose(data.name)
 
 
-    def create_interactive_marker(self, name: str, stamped_pose: PoseStamped = PoseStamped()):
+    def create_interactive_marker(self, name: str, stamped_pose: PoseStamped):
         marker = InteractiveMarker()
-        stamped_pose.header.frame_id = "base_link"
-        #print(stamped_pose)
+        stamped_pose.header.frame_id = "map"
         marker.header = stamped_pose.header
         marker.pose = stamped_pose.pose
         marker.pose.position.z = 0.05
@@ -115,16 +118,17 @@ class MapAnnotationServer(object):
 
         self.interactive_marker_server.insert(marker, self.interactive_marker_callback)
         self.interactive_marker_server.applyChanges()
-
+        print("Hereeeeeeeee")
         self.save_pose(name, stamped_pose)
 
 
     def interactive_marker_callback(self, feedback: InteractiveMarkerFeedback):
         pose = feedback.pose
         stamped_pose = self.pose_to_stampedpose(pose)
+        stamped_pose.header.frame_id = "map"
         name = feedback.marker_name
         self.save_pose(name, stamped_pose)
-        self.list_saved_poses()
+
 
     def list_saved_poses(self):
         pose_names = PoseNames()
@@ -145,21 +149,24 @@ class MapAnnotationServer(object):
 #        pos.pose = self._data.pose.pose
         # Get position of the marker
         self.dict[name] = pos
+        if DEBUG:
+            print(self.dict)
+
         self.list_saved_poses()     
         self.pickling(self.pickle_file, self.dict)
         return 1
         
     def delete_pose(self, name):
         self.interactive_marker_server.erase(name)
-        self.dict.pop(name)
-        self.list_saved_poses()  
-        self.pickling(self.pickle_file, self.dict)
+        if self.check_name(name):
+            self.dict.pop(name)
+            self.list_saved_poses()
+            self.pickling(self.pickle_file, self.dict)
         return 1
         
     def goto_pose(self, name):
         if self.check_name(name):
             pos = self.dict[name]
-            print(pos)
             self.nav_goal.publish(pos)
             return 1
         return 0
