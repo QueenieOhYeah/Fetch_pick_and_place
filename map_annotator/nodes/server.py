@@ -2,7 +2,7 @@
 
 import rospy
 import pickle
-import geometry_msgs.msg
+import geometry_msgs.msg import Pose, PoseStamped
 from map_annotator.srv import Save, List, Delete, Goto
 from map_annotator.msg import PoseNames, UserAction
 from interactive_markers.interactive_marker_server import InteractiveMarkerServer
@@ -28,9 +28,9 @@ class MapAnnotationServer(object):
         if self.dict == None:
             self.dict = {}
         #rospy.Subscriber("amcl_pose", geometry_msgs.msg.PoseWithCovarianceStamped, self.callback)
-        self.nav_goal = rospy.Publisher('move_base_simple/goal', geometry_msgs.msg.PoseStamped)
-        self.pose_names = rospy.Publisher('map_annotator/pose_names', map_annotator.msg.PoseNames, latch=True)
-        self.user_action = rospy.Subscriber('map_annotator/user_actions', map_annotator.msg.UserAction, self.callback_user_action)
+        self.nav_goal = rospy.Publisher('move_base_simple/goal', PoseStamped)
+        self.pose_names = rospy.Publisher('map_annotator/pose_names', PoseNames, latch=True)
+        self.user_action = rospy.Subscriber('map_annotator/user_actions', UserAction, self.callback_user_action)
         self.interactive_marker_server = InteractiveMarkerServer("/map_annotator/map_poses")
         #self.initial_pose = geometry_msgs.msg.Pose()
         # create saved markers
@@ -56,8 +56,8 @@ class MapAnnotationServer(object):
         except:
             return None
 # Marker pose type in geometry_msgs.msg.Pose while goto function uses geometry_msgs.msg.PoseStamped
-    def pose_to_stampedpose(self, pose: geometry_msgs.msg.Pose):
-        stamped_pose = geometry_msgs.msg.PoseStamped()
+    def pose_to_stampedpose(self, pose: Pose):
+        stamped_pose = PoseStamped()
         stamped_pose.pose = pose
         return stamped_pose
 
@@ -70,7 +70,7 @@ class MapAnnotationServer(object):
             self.goto_pose(data.name)
 
 
-    def create_interactive_marker(self, name: str, stamped_pose: geometry_msgs.msg.PoseStamped = geometry_msgs.msg.PoseStamped()):
+    def create_interactive_marker(self, name: str, stamped_pose: PoseStamped = PoseStamped()):
         marker = InteractiveMarker()
         marker.header = stamped_pose.header
         marker.header.frame_id = "base_link"
@@ -119,7 +119,9 @@ class MapAnnotationServer(object):
         self.list_saved_poses()
 
     def list_saved_poses(self):
-        self.pose_names.publish(self.dict.keys())
+        pose_names = PoseNames()
+        pose_names.names = self.dict.keys()
+        self.pose_names.publish(pose_names)
         
     def check_name(self, name):
         if name in self._dict:
@@ -145,6 +147,7 @@ class MapAnnotationServer(object):
         
     def goto_pose(self, name):
         pos = self.dict[name]
+
         self.nav_goal.publish(pos)
         return 1
 
