@@ -9,6 +9,7 @@ from interactive_markers.interactive_marker_server import InteractiveMarkerServe
 from visualization_msgs.msg import Marker, InteractiveMarker, InteractiveMarkerControl, InteractiveMarkerFeedback
 
 
+DEBUG = True
 
 def wait_for_time():
     """Wait for simulated time to begin.
@@ -34,7 +35,8 @@ class MapAnnotationServer(object):
         self.interactive_marker_server = InteractiveMarkerServer("/map_annotator/map_poses")
         #self.initial_pose = geometry_msgs.msg.Pose()
         # create saved markers
-        for key, value in self.dict:
+
+        for key, value in list(self.dict):
             self.create_interactive_marker(key, value)
         
 #    def callback(self, data):
@@ -72,8 +74,9 @@ class MapAnnotationServer(object):
 
     def create_interactive_marker(self, name: str, stamped_pose: PoseStamped = PoseStamped()):
         marker = InteractiveMarker()
+        stamped_pose.header.frame_id = "base_link"
+        #print(stamped_pose)
         marker.header = stamped_pose.header
-        marker.header.frame_id = "base_link"
         marker.pose = stamped_pose.pose
         marker.pose.position.z = 0.05
         marker.name = name
@@ -86,14 +89,16 @@ class MapAnnotationServer(object):
         marker_control.orientation.z = 0;
         marker_control.interaction_mode = InteractiveMarkerControl.MOVE_PLANE
 
-        marker.append(marker_control)
+        #marker.append(marker_control)
         arrow_marker = Marker()
-        arrow_marker.scale.x = 3
-        arrow_marker.scale.y = 0.3
-        arrow_marker.scale.z = 0.3
+        arrow_marker.type = Marker.ARROW
+        arrow_marker.scale.x = 0.5
+        arrow_marker.scale.y = 0.1
+        arrow_marker.scale.z = 0.1
         arrow_marker.color.r = 0
         arrow_marker.color.g = 0
         arrow_marker.color.b = 1
+        arrow_marker.color.a = 1
 
         rotate_control = InteractiveMarkerControl()
         rotate_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
@@ -103,13 +108,15 @@ class MapAnnotationServer(object):
         rotate_control.orientation.z = 0;
 
         marker_control.always_visible = True
-        marker_control.append(arrow_marker)
-        rotate_control.append(arrow_marker)
+        marker_control.markers.append(arrow_marker)
+        #rotate_control.markers.append(arrow_marker)
         marker.controls.append(marker_control)
-        marker.controls.append(rotate_control_control)
+        marker.controls.append(rotate_control)
 
         self.interactive_marker_server.insert(marker, self.interactive_marker_callback)
         self.interactive_marker_server.applyChanges()
+
+        self.save_pose(name, stamped_pose)
 
 
     def interactive_marker_callback(self, feedback: InteractiveMarkerFeedback):
@@ -123,9 +130,12 @@ class MapAnnotationServer(object):
         pose_names = PoseNames()
         pose_names.names = self.dict.keys()
         self.pose_names.publish(pose_names)
+        if DEBUG:
+            print(pose_names)
+
         
     def check_name(self, name):
-        if name in self._dict:
+        if name in self.dict:
             return True
         return False
         
@@ -136,21 +146,23 @@ class MapAnnotationServer(object):
         # Get position of the marker
         self.dict[name] = pos
         self.list_saved_poses()     
-        pickling(self.pickle_file, self.dict)
+        self.pickling(self.pickle_file, self.dict)
         return 1
         
     def delete_pose(self, name):
         self.interactive_marker_server.erase(name)
         self.dict.pop(name)
         self.list_saved_poses()  
-        pickling(self.pickle_file, self.dict)
+        self.pickling(self.pickle_file, self.dict)
         return 1
         
     def goto_pose(self, name):
-        pos = self.dict[name]
-
-        self.nav_goal.publish(pos)
-        return 1
+        if self.check_name(name):
+            pos = self.dict[name]
+            print(pos)
+            self.nav_goal.publish(pos)
+            return 1
+        return 0
 
 def main():
     rospy.init_node('map_annotator_node')
