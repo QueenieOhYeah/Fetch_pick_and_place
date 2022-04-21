@@ -49,11 +49,25 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
+<<<<<<< HEAD
  add_message_files(
    FILES
    PoseNames.msg
    UserAction.msg
  )
+||||||| 67c4222
+# add_message_files(
+#   FILES
+#   Message1.msg
+#   Message2.msg
+# )
+=======
+add_message_files(
+  FILES
+  PoseNames.msg
+  UserAction.msg
+)
+>>>>>>> ef61c4731ad1c5677353c6c6d2c54f241b9bcf6a
 
 # Generate services in the 'srv' folder
  add_service_files(
@@ -72,11 +86,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
-   geometry_msgs
- )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+  geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -110,7 +124,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES map_annotator
-#  CATKIN_DEPENDS roscpp rospy
+  CATKIN_DEPENDS message_generation roscpp rospy
 #  DEPENDS system_lib
 )
 
