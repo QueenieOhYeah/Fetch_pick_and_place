@@ -54,7 +54,6 @@ add_message_files(
   PoseNames.msg
   UserAction.msg
 )
-
 # Generate services in the 'srv' folder
  add_service_files(
    FILES
