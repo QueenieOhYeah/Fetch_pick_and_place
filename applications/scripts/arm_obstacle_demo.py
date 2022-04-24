@@ -18,6 +18,7 @@ def main():
 
     # Instantiate the planning scene 
     planning_scene = PlanningSceneInterface('base_link')
+    print("got here")
 
     # Create table obstacle
     planning_scene.removeCollisionObject('table')

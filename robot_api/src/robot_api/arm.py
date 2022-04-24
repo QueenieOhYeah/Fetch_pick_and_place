@@ -170,7 +170,7 @@ class Arm(object):
         request.ik_request.group_name = 'arm'
         request.ik_request.timeout = timeout
         response = self._compute_ik(request)
-        error_str = moveit_error_string(response.error_code.val)
+        error_str = self._error_code_to_string(response.error_code.val)
         success = error_str == 'SUCCESS'
         if not success:
             return False
