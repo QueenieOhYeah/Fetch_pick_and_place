@@ -2,6 +2,8 @@
 
 from moveit_python import PlanningSceneInterface
 from geometry_msgs.msg import PoseStamped
+from moveit_msgs.msg import OrientationConstraint
+from robot_api import MoveItGoalBuilder
 import robot_api
 import rospy
 
@@ -32,6 +34,8 @@ def main():
                           table_x, table_y, table_z)
 
     # Create divider obstacle
+    # Removed to get oc to work
+    """
     planning_scene.removeCollisionObject('divider')
     size_x = 0.3 
     size_y = 0.01
@@ -40,6 +44,7 @@ def main():
     y = 0 
     z = table_z + (table_size_z / 2) + (size_z / 2)
     planning_scene.addBox('divider', size_x, size_y, size_z, x, y, z)
+    """
 
     arm = robot_api.Arm()
     def shutdown():
@@ -66,6 +71,19 @@ def main():
     pose2.pose.position.y = 0.3
     pose2.pose.position.z = 0.75
     pose2.pose.orientation.w = 1
+
+    oc = OrientationConstraint()
+    oc.header.frame_id = 'base_link'
+    oc.link_name = 'wrist_roll_link'
+    oc.orientation.w = 1
+    oc.absolute_x_axis_tolerance = 0.1
+    oc.absolute_y_axis_tolerance = 0.1
+    oc.absolute_z_axis_tolerance = 3.14
+    oc.weight = 1.0
+
+    builder = MoveItGoalBuilder()
+    builder.set_pose_goal(pose2)
+    builder.add_path_orientation_constraint(oc)
 
     planning_scene.removeAttachedObject('tray')
 
