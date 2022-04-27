@@ -28,6 +28,9 @@ class Arm(object):
         # Create a MoveGroupAction action client
         self._move_group_client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
 
+        # Wait for server
+        self._move_group_client.wait_for_server(rospy.Duration(10))
+
         self._compute_ik = rospy.ServiceProxy('compute_ik', GetPositionIK)
 
 
@@ -89,10 +92,17 @@ class Arm(object):
             return errors[error_code]
         return "Unidentified code"
 
-    def move_to_pose(self, pose_stamped, allowed_planning_time=10.0,
-                     execution_timeout=15.0, group_name='arm', 
-                     num_planning_attempts=1, plan_only=False, replan=False,
-                     replan_attempts=5, tolerance=0.01):
+    def move_to_pose(self,
+                 pose_stamped,
+                 allowed_planning_time=10.0,
+                 execution_timeout=15.0,
+                 group_name='arm',
+                 num_planning_attempts=1,
+                 plan_only=False,
+                 replan=False,
+                 replan_attempts=5,
+                 tolerance=0.01,
+                 orientation_constraint=None):
         """Moves the end-effector to a pose, using motion planning.
 
         Args:
@@ -126,10 +136,14 @@ class Arm(object):
         goal_builder.replan = replan
         goal_builder.replan_attempts = replan_attempts
         goal_builder.tolerance = tolerance
+        if orientation_constraint is not None:
+            goal_builder.add_path_orientation_constraint(orientation_constraint)        
         goal = goal_builder.build()
 
         self._move_group_client.send_goal(goal)
+        print("Will wait for moveit")
         self._move_group_client.wait_for_result(rospy.Duration(execution_timeout))
+        print("...DONE...")
         result = self._move_group_client.get_result()
         
         if result is not None:
@@ -141,12 +155,17 @@ class Arm(object):
         else:
             print("Why is this None the first pass through?")
 
-    def check_pose(self, pose_stamped, allowed_planning_time=10.0, 
-                   group_name='arm', tolerance=0.01):
-        return self.move_to_pose(pose_stamped,
-                                 allowed_planning_time=allowed_planning_time,
-                                 group_name=group_name, tolerance=tolerance,
-                                 plan_only=True)
+    def check_pose(self,
+                   pose_stamped,
+                   allowed_planning_time=10.0,
+                   group_name='arm',
+                   tolerance=0.01):
+        return self.move_to_pose(
+            pose_stamped,
+            allowed_planning_time=allowed_planning_time,
+            group_name=group_name,
+            tolerance=tolerance,
+            plan_only=True)
 
     def cancel_all_goals(self):
         self._client.cancel_all_goals() # Your action client from Lab 7

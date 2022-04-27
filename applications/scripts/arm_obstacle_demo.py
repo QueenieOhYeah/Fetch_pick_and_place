@@ -23,7 +23,9 @@ def main():
     planning_scene = PlanningSceneInterface('base_link')
 
     # Create table obstacle
-    planning_scene.removeCollisionObject('table')
+    # print("will remove table")
+    # planning_scene.removeCollisionObject('table')
+    # print("..removed..")
     table_size_x = 0.5
     table_size_y = 1
     table_size_z = 0.03
@@ -35,16 +37,16 @@ def main():
 
     # Create divider obstacle
     # Removed to get oc to work
-    """
-    planning_scene.removeCollisionObject('divider')
-    size_x = 0.3 
-    size_y = 0.01
-    size_z = 0.4 
-    x = table_x - (table_size_x / 2) + (size_x / 2)
-    y = 0 
-    z = table_z + (table_size_z / 2) + (size_z / 2)
-    planning_scene.addBox('divider', size_x, size_y, size_z, x, y, z)
-    """
+    
+#    planning_scene.removeCollisionObject('divider')
+#    size_x = 0.3 
+#    size_y = 0.01
+#    size_z = 0.4 
+#    x = table_x - (table_size_x / 2) + (size_x / 2)
+#    y = 0 
+#    z = table_z + (table_size_z / 2) + (size_z / 2)
+#    planning_scene.addBox('divider', size_x, size_y, size_z, x, y, z)
+    
 
     arm = robot_api.Arm()
     def shutdown():
@@ -81,11 +83,11 @@ def main():
     oc.absolute_z_axis_tolerance = 3.14
     oc.weight = 1.0
 
-    builder = MoveItGoalBuilder()
-    builder.set_pose_goal(pose2)
-    builder.add_path_orientation_constraint(oc)
+#    builder = MoveItGoalBuilder()
+#    builder.set_pose_goal(pose2)
+#    builder.add_path_orientation_constraint(oc)
 
-    planning_scene.removeAttachedObject('tray')
+    #planning_scene.removeAttachedObject('tray')
 
     error = arm.move_to_pose(pose1, **kwargs)
     if error is not None:
@@ -102,14 +104,14 @@ def main():
         planning_scene.sendColors()
 
     rospy.sleep(1)
-    error = arm.move_to_pose(pose2, **kwargs)
+    error = arm.move_to_pose(pose2, **kwargs, orientation_constraint = oc)
     if error is not None:
         rospy.logerr('Pose 2 failed: {}'.format(error)) 
     else:
         rospy.loginfo('Pose 2 succeeded')
 
     planning_scene.removeCollisionObject('table')
-    planning_scene.removeCollisionObject('divider')
+    #planning_scene.removeCollisionObject('divider')
 
     # At the end of your program
     planning_scene.removeAttachedObject('tray')
