@@ -44,6 +44,7 @@ class GripperTeleop(object):
         self._arm = arm
         self._gripper = gripper
         self._im_server = im_server
+        self._pose_is_reachable = True
 
         # When moved around, the marker should change color to reflect whether
         # the corresponding gripper pose is reachable by the robot or not.
@@ -51,11 +52,11 @@ class GripperTeleop(object):
         self._gripper_color = ColorRGBA(0.0, 1.0, 0.0, 1.0)
 
     def _build_menu(self, i_marker):
-        MENU_OPTIONS = {"Move gripper here":1, "Open gripper":2, "Close gripper":3}
+        self._MENU_OPTIONS = {"Move gripper here":1, "Open gripper":2, "Close gripper":3}
 
-        for key in MENU_OPTIONS.keys():
+        for key in self._MENU_OPTIONS.keys():
             menu_entry = MenuEntry()
-            menu_entry.id = MENU_OPTIONS[key]
+            menu_entry.id = self._MENU_OPTIONS[key]
             menu_entry.parent_id = 0
             menu_entry.title = key
             menu_entry.command_type = MenuEntry.FEEDBACK
@@ -132,6 +133,18 @@ class GripperTeleop(object):
         self._im_server.insert(self._i_marker, feedback_cb=self.handle_feedback)
         self._im_server.applyChanges()
 
+    def _move_gripper(self):
+        if self._pose_is_reachable:
+            ps = PoseStamped()
+            ps.header = self._i_marker.header
+            ps.pose = self._i_marker.pose
+            ps.header.frame_id = "base_link"
+            print(ps)
+            self._arm.move_to_pose(ps)
+        else:
+            print("The currently selected pose is not reachable.\nPlease move marker to a location where it is green.")
+ 
+
     def handle_feedback(self, feedback):
         # We moved the gripper to a new pose, check to see if it's reachable.
         # Change the color to green if it is and red if it's not.
@@ -140,13 +153,13 @@ class GripperTeleop(object):
             ps.header = feedback.header
             ps.pose = feedback.pose
             #self._last_pose = ps
-            print(self._arm.compute_ik(ps))
+
             if self._arm.compute_ik(ps):
-                print("Found pose")
                 self._gripper_color = ColorRGBA(0, 1.0, 0, 1.0)
+                self._pose_is_reachable = True
             else:
-                print("No pose")
                 self._gripper_color = ColorRGBA(1.0, 0, 0, 1.0)
+                self._pose_is_reachable = False
             
             for control in self._i_marker.controls:
                 for marker in control.markers:
@@ -162,32 +175,13 @@ class GripperTeleop(object):
             self._im_server.applyChanges()
         
         elif feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
-            print("FEEDBACK")
-            print(feedback)
-            """
-            if feedback.menu_entry_id == 1:
-                pose = PoseStamped()
-                pose.header = feedback.header
-                pose.header.frame_id = self.__object_name
-
-                # Since we changed the frame of the pose, the position should be 0
-                pose.pose = Pose()
-                pose.pose.orientation.w = 1.0
-                self.__grasp_callback(pose)
-            """
-
-        """
-        if self._im_marker is None:
-            return
-        for control in self._im_marker.controls:
-            for marker in control.markers:
-                marker.color = self._cur_color
-        self._im_server.erase(self._im_marker.name)
-        self._im_server.insert(self._im_marker, feedback_cb=self.handle_feedback)
-        self._im_server.applyChanges()
-        """
-        
-       
+            if feedback.menu_entry_id == self._MENU_OPTIONS["Move gripper here"]:
+                print("gripper move")
+                self._move_gripper()
+            elif feedback.menu_entry_id == self._MENU_OPTIONS["Open gripper"]:
+                self._gripper.open()
+            elif feedback.menu_entry_id == self._MENU_OPTIONS["Close gripper"]:
+                self._gripper.close()       
 
 
 class AutoPickTeleop(object):
