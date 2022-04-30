@@ -51,13 +51,10 @@ def axis_marker(pose_stamped):
 
 
 def transform_to_pose(matrix):
-    # Our matrix will be in the form:
-    #  ⎡ix jx kx transposeX⎤
-    #  ⎢iy jy ky transposeY⎥
-    #  ⎢iz jz kz transposeZ⎥
-    #  ⎣0  0  0  1         ⎦ 
-    # TODO: Finish comments above
     pose = Pose()
+#    rotation_matrix = matrix[0:3, 0:3]
+#    transformation = matrix[0:3, -1:]
+    #TODO: explain with comments
     (
         pose.orientation.x,
         pose.orientation.y,
@@ -68,7 +65,7 @@ def transform_to_pose(matrix):
         pose.position.x,
         pose.position.y,
         pose.position.z,
-    ) = matrix[:-1, -1]
+    ) = tft.translation_from_matrix(matrix)
     return pose
 
 
@@ -104,12 +101,14 @@ def main():
     ps.pose = transform_to_pose(b_in_a)
     viz_pub.publish(axis_marker(ps))
 
-    #point_in_b = np.array([1, 0, 0, 1])
-    #point_in_a = np.dot(b_in_a, point_in_b)
-    #rospy.loginfo(point_in_b)
-    #rospy.loginfo(point_in_a)
-    #point = Point(point_in_a[0], point_in_a[1], point_in_a[2])
-    #viz_pub.publish(arrow_marker(point))
+    point_in_b = np.array([1, 0, 0, 1])
+    point_in_a = np.dot(b_in_a, point_in_b)
+    rospy.loginfo(point_in_b)
+    rospy.loginfo(point_in_a)
+    point = Point(point_in_a[0], point_in_a[1], point_in_a[2])
+    viz_pub.publish(arrow_marker(point))
 
 if __name__ == '__main__':
     main()
+    rospy.spin()
+
