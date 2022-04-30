@@ -51,8 +51,13 @@ def axis_marker(pose_stamped):
 
 
 def transform_to_pose(matrix):
+    # Our matrix will be in the form:
+    #  ⎡ix jx kx transposeX⎤
+    #  ⎢iy jy ky transposeY⎥
+    #  ⎢iz jz kz transposeZ⎥
+    #  ⎣0  0  0  1         ⎦ 
+    # TODO: Finish comments above
     pose = Pose()
-    #TODO: explain with comments
     (
         pose.orientation.x,
         pose.orientation.y,
