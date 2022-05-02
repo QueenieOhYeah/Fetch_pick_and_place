@@ -8,6 +8,7 @@ Panels:
         - /Status1
         - /PointCloud21
         - /Global costmap1
+        - /InteractiveMarkers1
       Splitter Ratio: 0.5
     Tree Height: 296
   - Class: rviz/Selection
@@ -406,6 +407,15 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Class: rviz/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Name: InteractiveMarkers
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Update Topic: /map_annotator/map_poses/update
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -434,7 +444,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 24.63810920715332
+      Distance: 21.594646453857422
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -472,5 +482,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1267
-  X: 449
-  Y: 104
+  X: 2079
+  Y: 209
