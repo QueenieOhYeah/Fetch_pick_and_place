@@ -17,12 +17,13 @@ def main():
     wait_for_time()                                                                     
     argv = rospy.myargv()
     if len(argv) < 2:
-        print 'Publishes a saved point cloud to a latched topic.'
-        print 'Usage: rosrun applications publish_saved_cloud.py ~/cloud.bag'
+        print ('Publishes a saved point cloud to a latched topic.')
+        print ('Usage: rosrun applications publish_saved_cloud.py ~/cloud.bag')
         return
     path = argv[1]
     camera = perception.MockCamera()
-    cloud = camera.read_cloud(path)
+    cloud = camera.read_cloud("/home/dell/catkin_ws/src/fetch-picker/perception/src/"+path)
+
 
     if cloud is None:
         rospy.logerr('Could not load point cloud from {}'.format(path))

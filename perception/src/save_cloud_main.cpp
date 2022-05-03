@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 //    print_usage();
 //    return 1;
 //  } 
-//  std::string name(argv[1]);
+  std::string name(argv[1]);
 //  std::cout << "Hello, " << name << std::endl;
 
 //  return 0;
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   sensor_msgs::PointCloud2 cloud_out;                                                   
   pcl_ros::transformPointCloud("base_link", transform, *cloud, cloud_out);
   
-  std::string filename("cloud_points.bag");
+  std::string filename(name + ".bag");
   rosbag::Bag bag;
   bag.open(filename, rosbag::bagmode::Write);
   // topic, time, msg

@@ -6,7 +6,7 @@ class MockCamera(object):
     """A MockCamera reads saved point clouds.
     """
     def __init__(self):
-        
+        pass
 
     def read_cloud(self, path):
         """Returns the sensor_msgs/PointCloud2 in the given bag file.
@@ -20,8 +20,10 @@ class MockCamera(object):
         """
         try:
             bag = rosbag.Bag(path)
-            for topic, t, msg on bag.read_messages():
-                print(msg)
+            for topic, msg, t in bag.read_messages("head_camera/depth_registered/points"):
+                pass
+            #print(msg)
+            #topic, msg, t = bag.read_messages("head_camera/depth_registered/points")
             bag.close()
             return msg
         except:
