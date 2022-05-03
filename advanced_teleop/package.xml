@@ -63,6 +63,7 @@
   <exec_depend>interactive_markers</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>tf</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
 
 
