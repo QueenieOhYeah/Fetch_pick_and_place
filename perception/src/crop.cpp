@@ -9,6 +9,7 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
 namespace perception {
 Cropper::Cropper(const ros::Publisher& pub) : pub_(pub) {}
 
+
 void Cropper::Callback(const sensor_msgs::PointCloud2& msg) {
   PointCloudC::Ptr cloud(new PointCloudC());
   pcl::fromROSMsg(msg, *cloud);
@@ -25,12 +26,40 @@ void Cropper::Callback(const sensor_msgs::PointCloud2& msg) {
   ros::param::param("crop_max_z", max_z, 2.0);
   Eigen::Vector4f min_pt(min_x, min_y, min_z, 1);
   Eigen::Vector4f max_pt(max_x, max_y, max_z, 1);
+//  Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+//  Eigen::Vector3f translation;
+//  Eigen::Vector3f rotation;
+  double t_x, t_y, t_z, r_x, r_y, r_z;
+  //ros::param::param("translation", translation, [0,0,0]);
+  //ros::param::param("rotation", rotation, [0,0,0]);
+  //ros::param::param("transform", transform);
+  ros::param::param("t_x", t_x, 0.0);
+  ros::param::param("t_y", t_y, 0.0);
+  ros::param::param("t_z", t_z, 0.0);
+  ros::param::param("r_x", r_x, 0.0);
+  ros::param::param("r_y", r_y, 0.0);
+  ros::param::param("r_z", r_z, 0.0);
+  Eigen::Vector3f translation(t_x, t_y, t_z);
+  Eigen::Vector3f rotation(r_x, r_y, r_z);
+  
+  
+//  Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+//  //Eigen::Transform<float, 3, Eigen::Affine> transform;
+//  //transform = Eigen::Translation(translation);
+//  transform.translation() = translation;
+
+//  transform.rotate(Eigen::AngleAxisf(r_x, Eigen::Vector3f(1, 0, 0)));
+//  transform.rotate(Eigen::AngleAxisf(r_y, Eigen::Vector3f(0, 1, 0)));
+//  transform.rotate(Eigen::AngleAxisf(r_z, Eigen::Vector3f(0, 0, 1)));
 
   
   pcl::CropBox<PointC> crop;
   crop.setInputCloud(cloud);
   crop.setMin(min_pt);
   crop.setMax(max_pt);
+  //crop.setTransform(transform);
+  crop.setRotation(rotation);
+  crop.setTranslation(translation);
   crop.filter(*cropped_cloud);
   ROS_INFO("Cropped to %ld points", cropped_cloud->size());
   //converse back to sensor_msgs::PointClouds2
