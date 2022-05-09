@@ -59,6 +59,8 @@ class MoveItGoalBuilder(object):
         self.num_planning_attempts = 1
         self.plan_only = False
         self.planner_id = 'RRTConnectkConfigDefault'
+        #self.planner_id = 'RRTstarkConfigDefault'
+        #self.planner_id = 'ESTkConfigDefault'
         self.replan = False
         self.replan_attempts = 5
         self.replan_delay = 1
