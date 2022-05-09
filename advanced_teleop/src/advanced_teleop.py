@@ -125,6 +125,7 @@ class GripperTeleop(object):
         gripper_im.header.frame_id = "gripper_link" 
         gripper_im.name = "Advanced Teleop Gripper Marker"
         gripper_im.header.stamp = rospy.Time.now()
+        print(gripper_im.header)
 
         
         # You will need to create 3 markers: one for the gripper and two for
@@ -213,7 +214,7 @@ class AutoPickTeleop(object):
         self._im_server = im_server
         self._gripper_color = ColorRGBA(0.0, 1.0, 0.0, 1.0)
         self._pregrasp_offset = [-0.12,0,0]
-        self._lifted_offset = [0,0,0.17]
+        self._lifted_offset = [0,0,0.06]
         self._obj_offset = [0.18,0,0]
         self._poses_are_reachable = True #TODO: actually calculate this. currently needs to be moved to actually work
         self._PRE_GRASP_IDS = [1,2,3]
@@ -453,6 +454,7 @@ def main():
 
     arm = Arm()
     gripper = Gripper()
+    print("got here")
     im_server = InteractiveMarkerServer('gripper_im_server', q_size=2)
     auto_pick_im_server = InteractiveMarkerServer('auto_pick_im_server', q_size=2)
     teleop = GripperTeleop(arm, gripper, im_server)
