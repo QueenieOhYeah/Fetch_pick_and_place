@@ -374,12 +374,12 @@ class AutoPickTeleop(object):
             self._arm.move_to_pose(ps)
 
             # Move to grasp position
-            # TODO: add orientation constraint
             ps2 = PoseStamped()
             ps2.header = self._i_marker.header
             ps2.pose = self._i_marker.pose
 
             # Add an orientation constraint
+            
             oc = OrientationConstraint()
             oc.header.frame_id = 'base_link'
             oc.link_name = 'wrist_roll_link'
@@ -388,8 +388,9 @@ class AutoPickTeleop(object):
             oc.absolute_y_axis_tolerance = 0.2
             oc.absolute_z_axis_tolerance = 0.2
             oc.weight = 1.0
+            
 
-            self._arm.move_to_pose(ps2, orientation_constraint = oc)
+            self._arm.move_to_pose(ps2)#, orientation_constraint = oc)
 
             # Close gripper
             rospy.sleep(1) # Make sure it's actually in position before we start closing
@@ -400,7 +401,7 @@ class AutoPickTeleop(object):
             ps3 = PoseStamped()
             ps3.header = self._i_marker.header
             ps3.pose = self._build_pose(self._i_marker.pose, self._lifted_offset)
-            self._arm.move_to_pose(ps3, orientation_constraint = oc)
+            self._arm.move_to_pose(ps3)#, orientation_constraint = oc)
             
         else:
             print("At least one of the currently selected poses is not reachable.\nPlease move the object such that all markers are green.")
@@ -452,8 +453,8 @@ def main():
 
     arm = Arm()
     gripper = Gripper()
-    im_server = InteractiveMarkerServer('gripper_im_server')
-    auto_pick_im_server = InteractiveMarkerServer('auto_pick_im_server')
+    im_server = InteractiveMarkerServer('gripper_im_server', q_size=2)
+    auto_pick_im_server = InteractiveMarkerServer('auto_pick_im_server', q_size=2)
     teleop = GripperTeleop(arm, gripper, im_server)
     auto_pick = AutoPickTeleop(arm, gripper, auto_pick_im_server)
     teleop.start()

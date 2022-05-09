@@ -20,7 +20,7 @@
     </ros-topic>
 
     <paper-button on-tap="_handleDelete">Delete</paper-button>
-    <paper-button on-top="_handleGoTo">Go to</paper-button>
+    <paper-button on-tap="_handleGoTo">Go to</paper-button>
 
   </template>
 
@@ -38,7 +38,8 @@
         console.log('Deleting', this.poseName);
         var msg = {
           command: 'delete',
-          name: this.poseName
+          name: this.poseName,
+          updated_name: 'name'
         };     
         this.$.userActions.publish(msg);
       }
@@ -47,7 +48,8 @@
         console.log('Going to', this.poseName);
         var msg = {
           command: 'goto',
-          name: this.poseName
+          name: this.poseName,
+          updated_name: 'name'
         };     
         this.$.userActions.publish(msg);
       }
