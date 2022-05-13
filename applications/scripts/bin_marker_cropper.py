@@ -98,7 +98,7 @@ class SmartCropper(object):
 #        rospy.set_param("r_z", euler[2]);
  
 
-
+# 
         rospy.set_param("crop_min_x", -WIDTH/2)
         rospy.set_param("crop_min_y", -HEIGHT/2)
         rospy.set_param("crop_min_z", -DEPTH)
