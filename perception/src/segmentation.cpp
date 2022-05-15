@@ -5,6 +5,11 @@
 #include "pcl/point_types.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "pcl/filters/extract_indices.h"
+#include "pcl/segmentation/region_growing.h"
+#include "pcl/search/search.h"
+#include "pcl/search/kdtree.h"
+#include "pcl/features/normal_3d.h"
+#include "pcl/segmentation/region_growing_rgb.h"
 #include "geometry_msgs/Pose.h"
 #include "ros/ros.h"
 #include "sensor_msgs/PointCloud2.h"
@@ -28,9 +33,9 @@ Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& mar
 void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
                                       std::vector<pcl::PointIndices>* indices) {
     
-    Euclid(cloud, indices);
-    
-
+    //Euclid(cloud, indices);
+    RegionGrowing(cloud, indices);
+    //ColorRegionGrowing(cloud, indices);
     // Find the size of the smallest and the largest object,
     // where size = number of points in the cluster
     size_t min_size = std::numeric_limits<size_t>::max();
@@ -56,9 +61,9 @@ void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
     ROS_INFO("Found %ld objects, min size: %ld, max size: %ld",
             indices->size(), min_size, max_size);
     
-    sensor_msgs::PointCloud2 msg_out;
-    pcl::toROSMsg(*cloud, msg_out);
-    points_pub_.publish(msg_out);
+//    sensor_msgs::PointCloud2 msg_out;
+//    pcl::toROSMsg(*cloud, msg_out);
+//    points_pub_.publish(msg_out);
 
 }
 
@@ -112,13 +117,12 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
                             &object_marker.scale);
     object_marker.color.g = 1;
     object_marker.color.a = 0.3;
-    ros::Duration t(0.1);
-    object_marker.lifetime = t;
+    object_marker.lifetime = ros::Duration(3);
     markers_pub_.publish(object_marker);
 
-//  sensor_msgs::PointCloud2 msg_out;
-//  pcl::toROSMsg(*cloud_cluster, msg_out);
-//  points_pub_.publish(msg_out);
+  sensor_msgs::PointCloud2 msg_out;
+  pcl::toROSMsg(*cloud_cluster, msg_out);
+  points_pub_.publish(msg_out);
 }
 
 }
@@ -128,8 +132,8 @@ void Segmenter::Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
     {
         double cluster_tolerance;
         int min_cluster_size, max_cluster_size;
-        ros::param::param("ec_cluster_tolerance", cluster_tolerance, 0.01);
-        ros::param::param("ec_min_cluster_size", min_cluster_size, 10);
+        ros::param::param("ec_cluster_tolerance", cluster_tolerance, 0.02);
+        ros::param::param("ec_min_cluster_size", min_cluster_size, 1000);
         ros::param::param("ec_max_cluster_size", max_cluster_size, 10000);
         pcl::EuclideanClusterExtraction<PointC> euclid;
         euclid.setInputCloud(cloud);
@@ -137,6 +141,70 @@ void Segmenter::Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         euclid.setMinClusterSize(min_cluster_size);
         euclid.setMaxClusterSize(max_cluster_size);
         euclid.extract(*indices);
+    }
+    
+void Segmenter::RegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+                           std::vector<pcl::PointIndices> *indices)
+    {
+        double smoothness_thresh, curv_thresh;
+        int min_cluster_size, max_cluster_size, k_search, neighbours;
+        ros::param::param("reg_k", k_search, 50);
+        ros::param::param("reg_min_cluster_size", min_cluster_size, 1000);
+        ros::param::param("reg_max_cluster_size", max_cluster_size, 10000);
+        ros::param::param("reg_n", neighbours, 30);
+        ros::param::param("reg_sthres", smoothness_thresh, 3.0);
+        ros::param::param("reg_cthres", curv_thresh, 1.0);
+        
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::copyPointCloud(*cloud, *cloud_xyz);
+
+        pcl::search::Search<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+        pcl::PointCloud <pcl::Normal>::Ptr normals (new pcl::PointCloud <pcl::Normal>);
+        pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimator;
+        normal_estimator.setSearchMethod (tree);
+        normal_estimator.setInputCloud (cloud_xyz);
+        normal_estimator.setKSearch (k_search);
+        normal_estimator.compute (*normals);
+        
+        
+       
+        pcl::RegionGrowing<pcl::PointXYZ, pcl::Normal> reg;
+        reg.setMinClusterSize (min_cluster_size);
+        reg.setMaxClusterSize (max_cluster_size);
+        reg.setSearchMethod (tree);
+        reg.setNumberOfNeighbours (neighbours);
+        reg.setInputCloud (cloud_xyz);
+        //reg.setIndices (indices);
+        reg.setInputNormals (normals);
+        
+        
+        reg.setSmoothnessThreshold (smoothness_thresh/ 180.0 * M_PI);
+        reg.setCurvatureThreshold (curv_thresh);
+        reg.extract(*indices);
+    }
+    
+void Segmenter::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+                           std::vector<pcl::PointIndices> *indices)
+    {
+        float distance_thresh, point_color_thresh, region_color_thresh;
+        int min_cluster_size, max_cluster_size, k_search, neighbours;
+        ros::param::param("distance_thresh", distance_thresh, 10.0f);
+        ros::param::param("reg_min_cluster_size", min_cluster_size, 1000);
+        ros::param::param("reg_max_cluster_size", max_cluster_size, 10000);
+        ros::param::param("point_color_thresh", point_color_thresh, 6.0f);
+        ros::param::param("region_color_thresh", region_color_thresh, 5.0f);
+
+        
+        pcl::search::Search <pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+        pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;
+        reg.setInputCloud (cloud);
+        reg.setSearchMethod (tree);
+        reg.setDistanceThreshold (distance_thresh);
+        reg.setPointColorThreshold (point_color_thresh);
+        reg.setRegionColorThreshold (region_color_thresh);
+        reg.setMinClusterSize (min_cluster_size);
+        reg.setMaxClusterSize (max_cluster_size);
+        reg.extract (*indices);
     }
 
 

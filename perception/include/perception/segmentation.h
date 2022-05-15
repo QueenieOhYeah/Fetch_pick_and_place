@@ -22,6 +22,10 @@ class Segmenter {
                                geometry_msgs::Vector3* dimensions);
   void Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices);
+  void RegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+                           std::vector<pcl::PointIndices> *indices);
+  void ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+                           std::vector<pcl::PointIndices> *indices);
 
  private:
   ros::Publisher points_pub_;
