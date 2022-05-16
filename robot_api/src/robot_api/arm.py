@@ -129,6 +129,8 @@ class Arm(object):
         Returns:
             string describing the error if an error occurred, else None.
         """
+        print("PS:")
+        print(pose_stamped)
         goal_builder = MoveItGoalBuilder()
         goal_builder.set_pose_goal(pose_stamped)
         goal_builder.allowed_planning_time = allowed_planning_time
@@ -157,6 +159,9 @@ class Arm(object):
 
             if resultStr == "SUCCESS":
                 return None
+            else:
+                print(f"Couldn't complete moveit request: {resultStr}")
+
             return resultStr
         else:
             print("Why is this None the first pass through?")

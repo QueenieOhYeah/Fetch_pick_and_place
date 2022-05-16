@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   tf
+  std_msgs
+  geometry_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -53,7 +56,6 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    UserAction.msg
-
  )
 
 ## Generate services in the 'srv' folder

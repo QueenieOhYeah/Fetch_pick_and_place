@@ -1,0 +1,202 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/ros-websocket/ros-websocket.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<!--<link rel="import" href="./map-annotator-pose.html">-->
+<link rel="import" href="../bower_components/ros-rviz/ros-rviz.html">
+
+<dom-module id="pbd-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      
+      .hidden { display:none; } 
+      .shown { display:block; }   
+    </style>
+
+    <ros-websocket auto ros="{{ros}}"
+      url="{{url}}"
+      on-connection="_handleConnection"
+      on-close="_handleClose"
+      on-error="_handleError">
+    </ros-websocket>
+
+    <ros-topic
+      auto
+      id="userActions"
+      topic="demonstration/user_actions"
+      ros="{{ros}}"
+      msg-type="demonstration/UserAction">
+    </ros-topic>
+    
+    <div id="main" class="layout vertical">
+      <h1>Programming by Demonstration</h1>
+      <div>{{status}}</div>
+      <div id="content" class="layout horizontal">
+        <div id="createOrRun" class$="{{selectClass}}">
+          <paper-button on-tap="_handleCreateProgram">Create Program</paper-button>
+          <paper-button on-tap="_handleRunProgram">Run Program</paper-button>
+        </div>
+
+        <div id="createOptions" class$="{{createClass}}">
+          <paper-button on-tap="_handleSavePose">Save Pose</paper-button>
+          <paper-button on-tap="_handleOpenGripper">Open Gripper</paper-button>
+          <paper-button on-tap="_handleCloseGripper">Close Gripper</paper-button>
+          <paper-button on-tap="_handleSaveProgram">Save Program</paper-button>
+          <paper-button on-tap="_handleCancelProgram">Cancel</paper-button>
+        </div>
+        
+        <!--<div id="controls">
+          <h2>Poses</h2>
+          <template is="dom-repeat" items="[[poseNames.names]]">
+            <map-annotator-pose ros="[[ros]]" pose-name="[[item]]"></map-annotator-pose>
+          </template>
+          <paper-button on-tap="_handleCreate">Create Pose</paper-button>
+        </div>-->
+        
+                
+        
+        <!--<ros-rviz id="rviz" ros="[[ros]]" class="flex"></ros-rviz>-->
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class PbdApp extends Polymer.Element {
+      static get is() { return 'pbd-app'; }
+      
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'pbd-app'
+          },
+          hiddenClass: {
+            type: String,
+          }
+        };
+      }
+
+      
+
+
+      _handleConnection() {
+        this.status = 'Connected to the websocket server.';
+        console.log(this.status);
+      }
+      
+      _handleClose() {
+        this.status = 'Closed connection to the websocket server.';
+        console.log(this.status);
+      }
+
+      _handleError() {
+        this.status = 'Error connecting to the websocket server.';
+        console.log(this.status);
+      }
+
+      _handleCreateProgram(evt) {
+        let newProgramName = prompt("Please enter program name: ", "default");
+        console.log("Initializing", newProgramName);
+        
+        // Update the UI
+        this.selectClass='hidden';
+        this.createClass='shown';
+
+        // Relax the arm
+        var msg = {
+          command: 'relax',
+          filename: newProgramName
+        };     
+        this.$.userActions.publish(msg);
+      }
+
+      _handleRunProgram(evt) {
+        let programName = prompt("Please enter program name: ", "default")
+        var msg = {
+          command: 'run',
+          filename: programName
+        }
+        this.$.userActions.publish(msg);
+      }
+
+      _handleSavePose(evt) {
+        let relation = prompt("Save in relation to base or to tag", "base"); //TODO: make this a radio button?
+        if (relation == 'base') {
+          relation = 'save_base'
+        }
+        else if (relation == 'tag') {
+          relation = 'save_tag'
+        }
+        
+        var msg = {
+          command: relation,
+          filename: ''
+        };     
+        this.$.userActions.publish(msg);
+      }
+
+      _handleOpenGripper(evt) {
+        //console.log("TODO: open gripper");
+        var msg = {
+          command: 'open',
+          filename: ''
+        };     
+        this.$.userActions.publish(msg);
+      }
+
+      _handleCloseGripper(evt) {
+        var msg = {
+          command: 'close',
+          filename: ''
+        };     
+        this.$.userActions.publish(msg);
+      }
+
+      _handleSaveProgram(evt) {
+        var msg = {
+          command: 'create',
+          filename: ''
+        };     
+        this.$.userActions.publish(msg);
+      }
+
+      _handleCancelProgram(evt) {
+        console.log("TODO: cancel program");
+        this.selectClass='shown';
+        this.createClass='hidden'; 
+      }
+
+      //_handlePoseNames(evt) {
+      //  var msg = evt.detail;
+      //  console.log('Pose list: ', msg);
+      //}
+
+      //_handleCreate(evt) {
+      //  let newPoseName = prompt("Please enter pose name: ", "new pose");
+      //  console.log('Creating', newPoseName);
+      //  var msg = {
+      //    command: 'create',
+      //    name: newPoseName,
+      //    updated_name: 'name'
+      //  };     
+      //  this.$.userActions.publish(msg);
+      //}
+
+      ready() {
+        super.ready();
+        //this.$.createOptions.style.display = 'none';
+        this.createClass = 'hidden';
+      }
+    }
+
+    
+    window.customElements.define(PbdApp.is, PbdApp);
+  </script>
+</dom-module>

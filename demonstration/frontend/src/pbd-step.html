@@ -1,0 +1,83 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+
+<dom-module id="pbd-step">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    [[poseName]]
+
+    <!--<ros-topic
+      auto
+      id="userActions"
+      topic="map_annotator/user_actions"
+      ros="{{ros}}"
+      msg-type="map_annotator/UserAction">
+    </ros-topic>-->
+
+    <!--<paper-button on-tap="_handleDelete">Delete</paper-button>
+    <paper-button on-tap="_handleGoTo">Go to</paper-button>-->
+    <paper-button on-tap="_handleSavePose">Save Pose</paper-button>
+    <paper-button on-tap="_handleOpenGripper">Open Gripper</paper-button>
+    <paper-button on-tap="_handleCloseGripper">Close Gripper</paper-button>
+    <paper-button on-tap="_handleSaveProgram">Save Program</paper-button>
+
+  </template>
+
+  <script>
+    class PBDStep extends Polymer.Element {
+      static get is() { return 'pbd-step'; }
+      static get properties() {
+        return {
+          //poseName: String,
+          //ros: Object
+        };
+      }
+
+      /*
+      _handleDelete(evt) {
+        console.log('Deleting', this.poseName);
+        var msg = {
+          command: 'delete',
+          name: this.poseName,
+          updated_name: 'name'
+        };     
+        this.$.userActions.publish(msg);
+      }
+
+      _handleGoTo(evt) {
+        console.log('Going to', this.poseName);
+        var msg = {
+          command: 'goto',
+          name: this.poseName,
+          updated_name: 'name'
+        };     
+        this.$.userActions.publish(msg);
+      }
+      */
+
+      _handleSavePose(evt) {
+        console.log("TODO: save pose");
+      }
+
+      _handleOpenGripper(evt) {
+        console.log("TODO: open gripper");
+      }
+
+      _handleCloseGripper(evt) {
+          console.log("TODO: close gripper");
+      }
+
+      _handleSaveProgram(evt) {
+          console.log("TODO: save program");
+      }
+
+
+    }
+    window.customElements.define(PBDStep.is, PBDStep);
+  </script>
+</dom-module>

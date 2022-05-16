@@ -1,0 +1,6 @@
+{
+  "name": "pbd",
+  "short_name": "pbd",
+  "start_url": "/",
+  "display": "standalone"
+}
