@@ -3,6 +3,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "perception/segmentation.h"
+#include "visualization_msgs/Marker.h"
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "point_cloud_demo");
@@ -19,9 +20,11 @@ int main(int argc, char** argv) {
       nh.subscribe("cropped_cloud", 1, &perception::Downsampler::Callback, &downsampler);
   ros::Publisher segment_pub =
       nh.advertise<sensor_msgs::PointCloud2>("segment_cloud", 1, true);
-  perception::Segmenter segmenter(segment_pub);
+  ros::Publisher marker_pub = 
+      nh.advertise<visualization_msgs::Marker>("segment_marker", 1, true);    
+  perception::Segmenter segmenter(segment_pub, marker_pub);
   ros::Subscriber segment_sub =
-      nh.subscribe("cloud_in", 1, &perception::Segmenter::Callback, &segmenter);
-  ros::spin();
+      nh.subscribe("cropped_cloud", 1, &perception::Segmenter::Callback, &segmenter);
+  ros::spin(); 
   return 0;
 }
