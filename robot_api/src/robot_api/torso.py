@@ -36,7 +36,7 @@ class Torso(object):
         """
         # TODO: Check that the height is between MIN_HEIGHT and MAX_HEIGHT.
         if height < self.MIN_HEIGHT or height > self.MAX_HEIGHT:
-            raise Exception("INVAID HEIGHT")
+            raise Exception("INVALID HEIGHT")
         # TODO: Create a trajectory point
         p = JointTrajectoryPoint()
         # TODO: Set position of trajectory point
@@ -55,5 +55,7 @@ class Torso(object):
         # TODO: Send goal
         self._client.send_goal(goal)
         # TODO: Wait for result
-        self._client.wait_for_result()
+        print("sending")
+        result = self._client.wait_for_result()
+        print(f"result: {result}")
         #rospy.logerr('Not implemented.')

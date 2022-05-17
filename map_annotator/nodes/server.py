@@ -172,6 +172,7 @@ class MapAnnotationServer(object):
         return 0
 
 def main():
+    print("Starting map annotator server")
     rospy.init_node('map_annotator_node')
     server = MapAnnotationServer()
     wait_for_time()

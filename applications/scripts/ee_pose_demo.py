@@ -19,7 +19,9 @@ def main():
         print(f"Time: {rospy.Time.now().to_sec()}")
         try:
             #                                                   end effector     base        get most recent        
-            translation, quaternion = listener.lookupTransform("gripper_link", "base_link", rospy.Time(0))
+            #translation, quaternion = listener.lookupTransform("gripper_link", "base_link", rospy.Time(0))
+            #translation, quaternion = listener.lookupTransform("base_link", "gripper_link", rospy.Time(0))
+            translation, quaternion = listener.lookupTransform("base_link", "wrist_roll_link", rospy.Time(0))
             #print("Translation: ", translation)
             #print("Quartenion: ", quartenion)
             print(F"{translation} {quaternion}")
