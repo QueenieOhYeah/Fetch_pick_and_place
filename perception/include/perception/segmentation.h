@@ -6,6 +6,7 @@
 #include "pcl/segmentation/extract_clusters.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Vector3.h"
+#include "perception/object.h"
 
 namespace perception {
 
@@ -26,7 +27,14 @@ class Segmenter {
                            std::vector<pcl::PointIndices> *indices);
   void ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices);
-
+  
+// Does a complete bin segmentation pipeline.
+//
+// Args:
+//  cloud: The point cloud with the bin and the objects in it.
+//  objects: The output objects.
+  void SegmentObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+                          std::vector<Object>* objects);
  private:
   ros::Publisher points_pub_;
   ros::Publisher markers_pub_;

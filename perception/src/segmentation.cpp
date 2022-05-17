@@ -32,10 +32,22 @@ Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& mar
 
 void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
                                       std::vector<pcl::PointIndices>* indices) {
-    
+    int function_id;
+    ros::param::param("function", function_id, 1);
+    if (function_id == 1) {
+      Euclid(cloud, indices);
+    }
+    if (function_id == 2) {
+      RegionGrowing(cloud, indices);
+    }
+    if (function_id == 3) {
+      ColorRegionGrowing(cloud, indices);
+    }
     //Euclid(cloud, indices);
-    RegionGrowing(cloud, indices);
+    //RegionGrowing(cloud, indices);
     //ColorRegionGrowing(cloud, indices);
+    
+    
     // Find the size of the smallest and the largest object,
     // where size = number of points in the cluster
     size_t min_size = std::numeric_limits<size_t>::max();
@@ -55,6 +67,7 @@ void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
         extract.setInputCloud(cloud);
         extract.setIndices(indice);
         extract.filter(*subset_cloud);
+        
         cloud_cluster->insert(std::end(*cloud_cluster), std::begin(*subset_cloud), std::end(*subset_cloud));
     }
 
@@ -65,6 +78,34 @@ void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
 //    pcl::toROSMsg(*cloud, msg_out);
 //    points_pub_.publish(msg_out);
 
+}
+
+void Segmenter::SegmentObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+                          std::vector<Object>* objects) {
+  std::vector<pcl::PointIndices> object_indices;
+  SegmentBinObjects(cloud, &object_indices);
+  PointCloudC::Ptr cloud_cluster (new PointCloudC());
+  
+  for (size_t i = 0; i < object_indices.size(); ++i) {
+    //// Reify indices into a point cloud of the object.
+    pcl::PointIndices::Ptr indices(new pcl::PointIndices);
+    *indices = object_indices[i];
+    PointCloudC::Ptr object_cloud(new PointCloudC());
+    // TODO: fill in object_cloud using indices
+    pcl::ExtractIndices<PointC> extract;
+    extract.setInputCloud(cloud);
+    extract.setIndices(indices);
+    extract.filter(*object_cloud);
+    Object object = Object();
+    object.cloud = object_cloud;
+    GetAxisAlignedBoundingBox(object_cloud, &object.pose, &object.dimensions);
+    objects->push_back(object);
+    
+    cloud_cluster->insert(std::end(*cloud_cluster), std::begin(*object_cloud), std::end(*object_cloud));   
+  sensor_msgs::PointCloud2 msg_out;
+  pcl::toROSMsg(*cloud, msg_out);
+  points_pub_.publish(msg_out);                          
+}
 }
 
 void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
@@ -85,47 +126,48 @@ void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
   PointCloudC::Ptr cloud(new PointCloudC());
   pcl::fromROSMsg(msg, *cloud);
-  std::vector<pcl::PointIndices> object_indices;
+//  std::vector<pcl::PointIndices> object_indices;
   PointCloudC::Ptr filtered_cloud(new PointCloudC());
   std::vector<int> index;
   pcl::removeNaNFromPointCloud(*cloud, *filtered_cloud, index);
-  SegmentBinObjects(filtered_cloud, &object_indices);
-  PointCloudC::Ptr cloud_cluster (new PointCloudC());
+//  SegmentBinObjects(filtered_cloud, &object_indices);
+//  PointCloudC::Ptr cloud_cluster (new PointCloudC());
 
   
+  std::vector<Object> objects;
+  SegmentObjects(filtered_cloud, &objects);
   
-  for (size_t i = 0; i < object_indices.size(); ++i) {
-    //// Reify indices into a point cloud of the object.
-    pcl::PointIndices::Ptr indices(new pcl::PointIndices);
-    *indices = object_indices[i];
-    PointCloudC::Ptr object_cloud(new PointCloudC());
-    // TODO: fill in object_cloud using indices
-    pcl::ExtractIndices<PointC> extract;
-    extract.setInputCloud(filtered_cloud);
-    extract.setIndices(indices);
-    extract.filter(*object_cloud);
-    cloud_cluster->insert(std::end(*cloud_cluster), std::begin(*object_cloud), std::end(*object_cloud));    
+  for (size_t i = 0; i < objects.size(); ++i) {
+//    //// Reify indices into a point cloud of the object.
+//    pcl::PointIndices::Ptr indices(new pcl::PointIndices);
+//    *indices = object_indices[i];
+//    PointCloudC::Ptr object_cloud(new PointCloudC());
+//    // TODO: fill in object_cloud using indices
+//    pcl::ExtractIndices<PointC> extract;
+//    extract.setInputCloud(filtered_cloud);
+//    extract.setIndices(indices);
+//    extract.filter(*object_cloud);
+//    cloud_cluster->insert(std::end(*cloud_cluster), std::begin(*object_cloud), std::end(*object_cloud));    
 
-
+    const Object& object = objects[i];
     // Publish a bounding box around it.
     visualization_msgs::Marker object_marker;
     object_marker.ns = "objects";
     object_marker.id = i;
     object_marker.header.frame_id = "base_link";
     object_marker.type = visualization_msgs::Marker::CUBE;
-    GetAxisAlignedBoundingBox(object_cloud, &object_marker.pose,
-                            &object_marker.scale);
+    object_marker.pose = object.pose;
+    object_marker.scale = object.dimensions;
     object_marker.color.g = 1;
     object_marker.color.a = 0.3;
     object_marker.lifetime = ros::Duration(3);
     markers_pub_.publish(object_marker);
 
-  sensor_msgs::PointCloud2 msg_out;
-  pcl::toROSMsg(*cloud_cluster, msg_out);
-  points_pub_.publish(msg_out);
 }
 
 }
+
+
 
 void Segmenter::Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices)
@@ -189,8 +231,8 @@ void Segmenter::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         float distance_thresh, point_color_thresh, region_color_thresh;
         int min_cluster_size, max_cluster_size, k_search, neighbours;
         ros::param::param("distance_thresh", distance_thresh, 10.0f);
-        ros::param::param("reg_min_cluster_size", min_cluster_size, 1000);
-        ros::param::param("reg_max_cluster_size", max_cluster_size, 10000);
+        ros::param::param("creg_min_cluster_size", min_cluster_size, 1000);
+        ros::param::param("creg_max_cluster_size", max_cluster_size, 10000);
         ros::param::param("point_color_thresh", point_color_thresh, 6.0f);
         ros::param::param("region_color_thresh", region_color_thresh, 5.0f);
 

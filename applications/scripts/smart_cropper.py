@@ -47,7 +47,7 @@ class SmartCropper(object):
 
     def callback(self, msg):
         self.markers = msg.markers
-        marker = self.markers[1]
+        marker = self.markers[0]
         self.crop(marker)
 
 
@@ -70,7 +70,8 @@ class SmartCropper(object):
         rospy.set_param("crop_max_y", HEIGHT/2)
         rospy.set_param("crop_max_z", 0)
         
-        position, orientation, euler = self.get_shifted_pose(SHIFT, marker)
+#        position, orientation, euler = self.get_shifted_pose(SHIFT, marker)
+        position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, marker.header.frame_id[1:])
         
         rospy.set_param("t_x", position.x.item());
         rospy.set_param("t_y", position.y.item());
@@ -84,14 +85,24 @@ class SmartCropper(object):
         SHIFT_CUBE = SHIFT
         SHIFT_CUBE.z -= DEPTH/2
         
-        position_cube, orientation_cube, euler_cube = self.get_shifted_pose(SHIFT_CUBE, marker)
-        
+#        position_cube, orientation_cube, euler_cube = self.get_shifted_pose(SHIFT_CUBE, marker)
+        position_cube, orientation_cube, euler_cube = self.get_shifted_pose(SHIFT_CUBE, marker.id, 'base_link')
         show_marker(position_cube, orientation_cube, [WIDTH, HEIGHT, DEPTH], 2.0, self.marker_pub)
               
             
-    def get_shifted_pose(self, shift, marker):
+#    def get_shifted_pose(self, shift, marker):
+#        shift_pose = Pose(shift, Quaternion())
+#        shift_pose_to_base = self.transform(shift_pose, 'ar_marker_'+ str(marker.id), marker.header.frame_id[1:])
+#               
+#        orientation = shift_pose_to_base.orientation
+#        quat = np.array([orientation.x, orientation.y, orientation.z, orientation.w])
+#        euler = tf.transformations.euler_from_quaternion(quat)
+#        position = shift_pose_to_base.position
+#        return position, orientation, euler
+
+    def get_shifted_pose(self, shift, marker_id, marker_frame):
         shift_pose = Pose(shift, Quaternion())
-        shift_pose_to_base = self.transform(shift_pose, 'ar_marker_'+ str(marker.id), 'base_link')
+        shift_pose_to_base = self.transform(shift_pose, 'ar_marker_'+ str(marker_id), marker_frame)
                
         orientation = shift_pose_to_base.orientation
         quat = np.array([orientation.x, orientation.y, orientation.z, orientation.w])
