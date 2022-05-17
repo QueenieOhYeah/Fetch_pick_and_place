@@ -47,8 +47,9 @@ class SmartCropper(object):
 
     def callback(self, msg):
         self.markers = msg.markers
-        marker = self.markers[0]
-        self.crop(marker)
+        if self.markers:
+            marker = self.markers[0]
+            self.crop(marker)
 
 
     def crop(self, marker):
@@ -71,7 +72,11 @@ class SmartCropper(object):
         rospy.set_param("crop_max_z", 0)
         
 #        position, orientation, euler = self.get_shifted_pose(SHIFT, marker)
-        position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, marker.header.frame_id[1:])
+        # real robot
+        position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, 'head_camera_rgb_optical_frame')
+        # simulation
+#        position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, 'base_link')
+        print(marker.header.frame_id[1:])
         
         rospy.set_param("t_x", position.x.item());
         rospy.set_param("t_y", position.y.item());
