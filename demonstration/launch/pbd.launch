@@ -13,4 +13,8 @@
     <param name="update_rate" value="10.0" />
   </node>-->
   <node pkg="collada_web_server" type="run_caddy.bash" name="collada_caddy" cwd="node" />
+
+  <!-- Move group -->
+  <!--<include file="$(find robot_api)/launch/move_group.launch" />-->
+  
 </launch>

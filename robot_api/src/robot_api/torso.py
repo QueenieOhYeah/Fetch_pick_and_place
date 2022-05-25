@@ -23,7 +23,8 @@ class Torso(object):
         # TODO: Create actionlib client
         # TODO: Wait for server
         self._client = actionlib.SimpleActionClient('torso_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-        self._client.wait_for_server(rospy.Duration(10))
+        #self._client.wait_for_server(rospy.Duration(1))
+        self._client.wait_for_server()
 
     def set_height(self, height):
         """Sets the torso height.
@@ -57,5 +58,5 @@ class Torso(object):
         # TODO: Wait for result
         print("sending")
         result = self._client.wait_for_result()
-        print(f"result: {result}")
+        #print(f"result: {result}")
         #rospy.logerr('Not implemented.')

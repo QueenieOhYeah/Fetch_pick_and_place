@@ -34,3 +34,13 @@ rosrun perception point_cloud_demo cloud_in:=mock_point_cloud
 rosrun applications hallucinated_reach.py
 
 ```
+## Test object detection
+```
+roscore
+rosrun applications publish_saved_cloud.py shelf.bag
+rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
+### Size features
+roslaunch perception object_detection.launch data_dir:=/home/dell/catkin_ws/src/fetch-picker/perception/src/data/labels
+### Color features
+roslaunch perception object_detection.launch data_dir:=/home/dell/catkin_ws/src/fetch-picker/perception/src/data/color_labels
+```
