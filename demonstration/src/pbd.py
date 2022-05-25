@@ -36,6 +36,7 @@ class PbD_Create_Pose_Server(object):
         rospy.on_shutdown(shutdown)
 
         self._gripper = Gripper()
+        self._gripper_status = "open" #TODO: actually check initial gripper status
 
         self._listener = TransformListener()
 
@@ -50,8 +51,12 @@ class PbD_Create_Pose_Server(object):
 
         self.user_action = rospy.Subscriber('demonstration/user_actions', UserAction, self.callback_user_action)
 
-        self._controller_client = actionlib.SimpleActionClient('arm_relaxer', QueryControllerStatesAction)
-        
+        #self._controller_client = actionlib.SimpleActionClient('arm_relaxer', QueryControllerStatesAction)
+        self._controller_client = actionlib.SimpleActionClient('query_controller_states', QueryControllerStatesAction)
+        print("waiting for controller server")
+        self._controller_client.wait_for_server()
+        print("waited")
+
     def marker_callback(self, msg):
         self.markers = msg.markers
 
@@ -88,26 +93,7 @@ class PbD_Create_Pose_Server(object):
             
 
         if data.command == UserAction.SAVE_TO_BASE:
-            # transform pose and save poses related to base_link
-            # ...
-
-            #                                                         end effector     base        get most recent        
-            #translation, quaternion = self._listener.lookupTransform("gripper_link", "base_link", rospy.Time(0))
-            translation, quaternion = self._listener.lookupTransform("base_link", "wrist_roll_link", rospy.Time(0))
-            ps = PoseStamped()
-            ps.header.frame_id = 'base_link'
-            ps.pose.position.x = translation[0]
-            ps.pose.position.y = translation[1]
-            ps.pose.position.z = translation[2]
-            ps.pose.orientation.x = quaternion[0]
-            ps.pose.orientation.y = quaternion[1]
-            ps.pose.orientation.z = quaternion[2]
-            ps.pose.orientation.w = quaternion[3]
-
-            gripper = "open" #TODO: update this to actually reflect current state
-
-            self.save_poses(ps, gripper)
-            #pass
+            self.save_to_base()
 
         if data.command == UserAction.SAVE_TO_TAG:
             # transform pose and save poses related to tag
@@ -121,6 +107,8 @@ class PbD_Create_Pose_Server(object):
             self._start_arm()
             print("opening gripper")
             self._gripper.open()
+            self._gripper_status = "open"
+            self.save_to_base() #TODO: call whichever save function was used previously
             self._relax_arm()
             
         if data.command == UserAction.CLOSE:
@@ -129,6 +117,8 @@ class PbD_Create_Pose_Server(object):
             self._start_arm()
             print("closing gripper")
             self._gripper.close()
+            self._gripper_status = "close"
+            self.save_to_base() #TODO: call whichever save function was used previously
             self._relax_arm()
 
         if data.command == UserAction.CREATE:
@@ -157,19 +147,40 @@ class PbD_Create_Pose_Server(object):
             # TODO: handle gripper state and base vs. tag relation
             for pose_packet in self.poses:
                 ps = pose_packet[0]
-                gripper_state = pose_packet[1]
-                #print("POSE STAMP:")
-                #print(ps)
-                #print("\nGRIPPER STATE:")
-                #print(gripper_state)
-            
-                # just used for testing
-                #ps.pose = Pose(Point(0.042, 0.384, 1.826), Quaternion(0.173, -0.693, -0.242, 0.657))
-                #pose2 = Pose(Point(0.047, 0.545, 1.822), Quaternion(-0.274, -0.701, 0.173, 0.635))
-                
-                self._arm.move_to_pose(ps)
+                #relation = pose_packet[1]
+                gripper_status = pose_packet[1]
+
+                if gripper_status != self._gripper_status:
+                    rospy.sleep(0.3)
+                    
+                    if gripper_status == 'close':
+                        self._gripper.close()
+                    elif gripper_status == 'open':
+                        self._gripper.open()
+                    self._gripper_status = gripper_status
+                    rospy.sleep(3)
+                    
+                else:
+                    self._arm.move_to_pose(ps)
                 #rospy.sleep(3)
                 print("\n\n")
+
+    def save_to_base(self):
+        #                                                         end effector     base        get most recent        
+        #translation, quaternion = self._listener.lookupTransform("gripper_link", "base_link", rospy.Time(0))
+        translation, quaternion = self._listener.lookupTransform("base_link", "wrist_roll_link", rospy.Time(0))
+            
+        ps = PoseStamped()
+        ps.header.frame_id = 'base_link'
+        ps.pose.position.x = translation[0]
+        ps.pose.position.y = translation[1]
+        ps.pose.position.z = translation[2]
+        ps.pose.orientation.x = quaternion[0]
+        ps.pose.orientation.y = quaternion[1]
+        ps.pose.orientation.z = quaternion[2]
+        ps.pose.orientation.w = quaternion[3]
+
+        self.save_poses(ps, self._gripper_status)
             
     def save_poses(self, pose: PoseStamped, gripper_status):
         self.poses.append([pose, gripper_status])
