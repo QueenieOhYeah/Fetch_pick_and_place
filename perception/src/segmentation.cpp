@@ -15,6 +15,7 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "visualization_msgs/Marker.h"
 #include <pcl/common/common.h>
+#include "perception/object_recognizer.h"
 
 typedef pcl::PointXYZRGB PointC;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
@@ -22,18 +23,19 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
 namespace perception {
 
 
-Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub)
-    : points_pub_(points_pub), markers_pub_(markers_pub) {}
+Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ObjectRecognizer& recognizer)
+    : points_pub_(points_pub), markers_pub_(markers_pub), recognizer_(recognizer) {} 
 
-
-
-//void Segmenter::SegmentBinObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
-//                                      std::vector<pcl::PointIndices> *indices) {
+//Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub)
+//    : points_pub_(points_pub), markers_pub_(markers_pub) {}
 
 void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
                                       std::vector<pcl::PointIndices>* indices) {
     int function_id;
     ros::param::param("function", function_id, 1);
+    
+    std::cout << function_id << std::endl;
+    
     if (function_id == 1) {
       Euclid(cloud, indices);
     }
@@ -126,28 +128,15 @@ void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
   PointCloudC::Ptr cloud(new PointCloudC());
   pcl::fromROSMsg(msg, *cloud);
-//  std::vector<pcl::PointIndices> object_indices;
   PointCloudC::Ptr filtered_cloud(new PointCloudC());
   std::vector<int> index;
   pcl::removeNaNFromPointCloud(*cloud, *filtered_cloud, index);
-//  SegmentBinObjects(filtered_cloud, &object_indices);
-//  PointCloudC::Ptr cloud_cluster (new PointCloudC());
 
   
   std::vector<Object> objects;
   SegmentObjects(filtered_cloud, &objects);
   
   for (size_t i = 0; i < objects.size(); ++i) {
-//    //// Reify indices into a point cloud of the object.
-//    pcl::PointIndices::Ptr indices(new pcl::PointIndices);
-//    *indices = object_indices[i];
-//    PointCloudC::Ptr object_cloud(new PointCloudC());
-//    // TODO: fill in object_cloud using indices
-//    pcl::ExtractIndices<PointC> extract;
-//    extract.setInputCloud(filtered_cloud);
-//    extract.setIndices(indices);
-//    extract.filter(*object_cloud);
-//    cloud_cluster->insert(std::end(*cloud_cluster), std::begin(*object_cloud), std::end(*object_cloud));    
 
     const Object& object = objects[i];
     // Publish a bounding box around it.
@@ -162,6 +151,35 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
     object_marker.color.a = 0.3;
     object_marker.lifetime = ros::Duration(3);
     markers_pub_.publish(object_marker);
+    
+    // Recognize the object.
+    std::string name;
+    double confidence;
+    // TODO: recognize the object with the recognizer_. /////////////////////////////
+    recognizer_.Recognize(object, &name, &confidence);
+    confidence = round(1000 * confidence) / 1000;
+
+    std::stringstream ss;
+    ss << name << " (" << confidence << ")";
+
+    // Publish the recognition result.
+    visualization_msgs::Marker name_marker;
+    name_marker.ns = "recognition";
+    name_marker.id = i;
+    name_marker.header.frame_id = "base_link";
+    name_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    name_marker.pose.position = object.pose.position;
+    name_marker.pose.position.z += 0.1;
+    name_marker.pose.orientation.w = 1;
+    name_marker.scale.x = 0.025;
+    name_marker.scale.y = 0.025;
+    name_marker.scale.z = 0.025;
+    name_marker.color.r = 0;
+    name_marker.color.g = 0;
+    name_marker.color.b = 1.0;
+    name_marker.color.a = 1.0;
+    name_marker.text = ss.str();
+    markers_pub_.publish(name_marker);
 
 }
 
@@ -236,6 +254,11 @@ void Segmenter::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         ros::param::param("point_color_thresh", point_color_thresh, 6.0f);
         ros::param::param("region_color_thresh", region_color_thresh, 5.0f);
 
+        std::cout << distance_thresh << std::endl;
+        std::cout << min_cluster_size << std::endl;
+        std::cout << max_cluster_size << std::endl;
+        std::cout << point_color_thresh << std::endl;
+        std::cout << region_color_thresh << std::endl;
         
         pcl::search::Search <pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
         pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;

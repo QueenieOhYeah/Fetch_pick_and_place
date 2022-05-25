@@ -16,23 +16,25 @@
 #include "perception/segmentation.h"
 #include "perception/typedefs.h"
 #include "perception_msgs/ObjectFeatures.h"
+#include "visualization_msgs/Marker.h"
 
-void Crop(PointCloudC::Ptr cloud_in, PointCloudC::Ptr cloud_out) {
-  double min_x, min_y, min_z, max_x, max_y, max_z;
-  ros::param::param("crop_min_x", min_x, 0.3);
-  ros::param::param("crop_min_y", min_y, -1.0);
-  ros::param::param("crop_min_z", min_z, 0.5);
-  ros::param::param("crop_max_x", max_x, 0.9);
-  ros::param::param("crop_max_y", max_y, 1.0);
-  ros::param::param("crop_max_z", max_z, 1.5);
-  Eigen::Vector4f min_pt(min_x, min_y, min_z, 1);
-  Eigen::Vector4f max_pt(max_x, max_y, max_z, 1);
-  pcl::CropBox<PointC> crop;
-  crop.setInputCloud(cloud_in);
-  crop.setMin(min_pt);
-  crop.setMax(max_pt);
-  crop.filter(*cloud_out);
-}
+
+//void Crop(PointCloudC::Ptr cloud_in, PointCloudC::Ptr cloud_out) {
+//  double min_x, min_y, min_z, max_x, max_y, max_z;
+//  ros::param::param("crop_min_x", min_x, 0.3);
+//  ros::param::param("crop_min_y", min_y, -1.0);
+//  ros::param::param("crop_min_z", min_z, 0.5);
+//  ros::param::param("crop_max_x", max_x, 0.9);
+//  ros::param::param("crop_max_y", max_y, 1.0);
+//  ros::param::param("crop_max_z", max_z, 1.5);
+//  Eigen::Vector4f min_pt(min_x, min_y, min_z, 1);
+//  Eigen::Vector4f max_pt(max_x, max_y, max_z, 1);
+//  pcl::CropBox<PointC> crop;
+//  crop.setInputCloud(cloud_in);
+//  crop.setMin(min_pt);
+//  crop.setMax(max_pt);
+//  crop.filter(*cloud_out);
+//}
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "extract_features");
@@ -45,6 +47,7 @@ int main(int argc, char** argv) {
               << std::endl;
     return 0;
   }
+
   std::string path(argv[1]);
   std::string label(argv[2]);
 
@@ -70,26 +73,50 @@ int main(int argc, char** argv) {
     break;
   }
 
-  PointCloudC::Ptr cropped_cloud(new PointCloudC());
-  Crop(pcl_cloud, cropped_cloud);
+//  PointCloudC::Ptr cropped_cloud(new PointCloudC());
+//  Crop(pcl_cloud, cropped_cloud);
+
 
   std::vector<perception::Object> objects;
-  perception::SegmentTabletopScene(cropped_cloud, &objects);
-  if (objects.size() != 1) {
-    std::cerr << "Expected to see exactly one object, found " << objects.size()
-              << std::endl;
-    return 1;
-  }
 
-  const perception::Object& object = objects[0];
-  perception_msgs::ObjectFeatures features;
-  features.object_name = label;
-  perception::ExtractSizeFeatures(object, &features);
+  
+  //segment
+//  ros::NodeHandle nh;
+//  
+////  std::vector<perception_msgs::ObjectFeatures> dataset;
+////  perception::LoadData(data_dir, &dataset);
+////  perception::ObjectRecognizer recognizer(dataset);
+//  
+//  ros::Publisher segment_pub =
+//      nh.advertise<sensor_msgs::PointCloud2>("segmented_cloud", 1, true);
+//  ros::Publisher marker_pub = 
+//      nh.advertise<visualization_msgs::Marker>("markers", 1, true);    
+//  perception::Segmenter segmenter(segment_pub, marker_pub);
+////  perception::Segmenter segmenter(segment_pub, marker_pub, recognizer);
+//  segmenter.SegmentObjects(pcl_cloud, &objects);
+//  
+//  
+//  
+//  if (objects.size() != 1) {
+//    std::cerr << "Expected to see exactly one object, found " << objects.size()
+//              << std::endl;
+//    return 1;
+//  }
 
-  rosbag::Bag bag_out;
-  bag_out.open(label + "_label.bag", rosbag::bagmode::Write);
-  bag_out.write("object_features", ros::Time::now(), features);
-  bag_out.close();
+
+//  const perception::Object& object = objects[0];
+//  perception_msgs::ObjectFeatures features;
+//  features.object_name = label;
+//  //Which feature
+//  //perception::ExtractSizeFeatures(object, &features);
+////  perception::ExtractColorFeatures(object, &features);
+//  perception::ExtractFeatures(object, &features);
+//  rosbag::Bag bag_out;
+//  bag_out.open(label + "_label.bag", rosbag::bagmode::Write);
+//  bag_out.write("object_features", ros::Time::now(), features);
+//  bag_out.close();
+//  
+//  std::cout << "Saved" << std::endl;
 
   return 0;
 }
