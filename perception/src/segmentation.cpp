@@ -16,6 +16,8 @@
 #include "visualization_msgs/Marker.h"
 #include <pcl/common/common.h>
 #include "perception/object_recognizer.h"
+#include "perception_msgs/ObjectList.h"
+#include "perception_msgs/Object.h"
 
 typedef pcl::PointXYZRGB PointC;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
@@ -23,8 +25,8 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
 namespace perception {
 
 
-Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ObjectRecognizer& recognizer)
-    : points_pub_(points_pub), markers_pub_(markers_pub), recognizer_(recognizer) {} 
+Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ros::Publisher& objects_pub, const ObjectRecognizer& recognizer)
+    : points_pub_(points_pub), markers_pub_(markers_pub), objects_pub_(objects_pub), recognizer_(recognizer) {} 
 
 //Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub)
 //    : points_pub_(points_pub), markers_pub_(markers_pub) {}
@@ -125,6 +127,7 @@ void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
                                
 }
 
+
 void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
   PointCloudC::Ptr cloud(new PointCloudC());
   pcl::fromROSMsg(msg, *cloud);
@@ -180,6 +183,16 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
     name_marker.color.a = 1.0;
     name_marker.text = ss.str();
     markers_pub_.publish(name_marker);
+    
+    
+    // Publish the object list
+    // To do: add bin id
+    perception_msgs::Object object_msg;
+    object_msg = object_to_msg(object, name);
+//    std::vector<perception_msgs::Object> objects;
+    perception_msgs::ObjectList objects;
+    objects.objects.push_back(object_msg);
+  objects_pub_.publish(objects); 
 
 }
 

@@ -8,6 +8,8 @@
 #include "geometry_msgs/Vector3.h"
 #include "perception/object.h"
 #include "perception/object_recognizer.h"
+#include "perception_msgs/ObjectList.h"
+#include "perception_msgs/Object.h"
 
 namespace perception {
 
@@ -16,7 +18,8 @@ namespace perception {
 class Segmenter {
  public:
 /*  Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub);*/
-  Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ObjectRecognizer& recognizer);
+/*  Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ObjectRecognizer& recognizer);*/
+  Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ros::Publisher& objects_pub, const ObjectRecognizer& recognizer);
   void Callback(const sensor_msgs::PointCloud2& msg);
   void SegmentBinObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices>* indices);
@@ -40,6 +43,7 @@ class Segmenter {
  private:
   ros::Publisher points_pub_;
   ros::Publisher markers_pub_;
+  ros::Publisher objects_pub_;
   ObjectRecognizer recognizer_;
 };
 }  // namespace perception

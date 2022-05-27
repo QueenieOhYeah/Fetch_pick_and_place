@@ -7,6 +7,7 @@
 #include <vector>
 #include "perception/object_recognizer.h"
 #include "perception_msgs/ObjectFeatures.h"
+#include "perception_msgs/ObjectList.h"
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "point_cloud_demo");
@@ -38,9 +39,11 @@ int main(int argc, char** argv) {
       nh.advertise<sensor_msgs::PointCloud2>("segment_cloud", 1, true);
   ros::Publisher marker_pub = 
       nh.advertise<visualization_msgs::Marker>("segment_marker", 1, true);    
+  ros::Publisher object_pub = 
+      nh.advertise<perception_msgs::ObjectList>("object_list", 1, true);     
   
 //  perception::Segmenter segmenter(segment_pub, marker_pub);
-  perception::Segmenter segmenter(segment_pub, marker_pub, recognizer);
+  perception::Segmenter segmenter(segment_pub, marker_pub, object_pub, recognizer);
   
   ros::Subscriber segment_sub =
   nh.subscribe("cropped_cloud", 1, &perception::Segmenter::Callback, &segmenter);
