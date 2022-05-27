@@ -21,7 +21,7 @@ def main():
         print ('Usage: rosrun applications publish_saved_cloud.py ~/cloud.bag')
         return
     #path = "/home/dell/catkin_ws/src/fetch-picker/perception/src/" + argv[1] #queenie
-    path = "/home/jack/catkin_ws/src/Team-GIX/perception/src/" + argv[1] #jack
+    path = argv[1] #jack
     camera = perception.MockCamera()
     print(f"Loading cloud from {path}")
     cloud = camera.read_cloud(path)

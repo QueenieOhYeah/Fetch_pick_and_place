@@ -9,7 +9,6 @@ project(perception_msgs)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   message_generation
-  message_runtime
 )
 
 ## System dependencies are found with CMake's conventions
@@ -69,7 +68,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
+#   std_msgs  # Or other packages containing msgs
  )
 
 ################################################
@@ -104,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES perception_msgs
-  CATKIN_DEPENDS message_generation message_runtime
+  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
