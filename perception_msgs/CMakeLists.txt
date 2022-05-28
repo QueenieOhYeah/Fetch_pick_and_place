@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
    ObjectFeatures.msg
    Object.msg
    ObjectList.msg
+   Target.msg
 
  )
 

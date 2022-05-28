@@ -1,4 +1,4 @@
-#include "perception/segmentation.h"
+#include "perception/final_segmentation.h"
 
 #include "pcl/PointIndices.h"
 #include "pcl/point_cloud.h"
@@ -18,6 +18,7 @@
 #include "perception/object_recognizer.h"
 #include "perception_msgs/ObjectList.h"
 #include "perception_msgs/Object.h"
+#include "perception_msgs/Target.h"
 
 typedef pcl::PointXYZRGB PointC;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
@@ -25,13 +26,13 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
 namespace perception {
 
 
-Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ros::Publisher& objects_pub, const ObjectRecognizer& recognizer)
+Segmenter_final::Segmenter_final(const ros::Publisher& points_pub, const ros::Publisher& markers_pub, const ros::Publisher& objects_pub, const ObjectRecognizer& recognizer)
     : points_pub_(points_pub), markers_pub_(markers_pub), objects_pub_(objects_pub), recognizer_(recognizer) {} 
 
 //Segmenter::Segmenter(const ros::Publisher& points_pub, const ros::Publisher& markers_pub)
 //    : points_pub_(points_pub), markers_pub_(markers_pub) {}
 
-void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
+void Segmenter_final::SegmentBinObjects(PointCloudC::Ptr cloud,
                                       std::vector<pcl::PointIndices>* indices) {
     int function_id;
     ros::param::param("function", function_id, 1);
@@ -84,7 +85,7 @@ void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
 
 }
 
-void Segmenter::SegmentObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+void Segmenter_final::SegmentObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                           std::vector<Object>* objects) {
   std::vector<pcl::PointIndices> object_indices;
   SegmentBinObjects(cloud, &object_indices);
@@ -112,7 +113,7 @@ void Segmenter::SegmentObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
 }
 }
 
-void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+void Segmenter_final::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                                geometry_msgs::Pose* pose,
                                geometry_msgs::Vector3* dimensions) {
   Eigen::Vector4f min_pt, max_pt;
@@ -127,8 +128,14 @@ void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
                                
 }
 
+//// Update target once received new command
+void Segmenter_final::UpdateTarget(const perception_msgs::Target& target) {
+  target_ = target;
+  std::cout << target_.name << std::endl;
 
-void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
+}
+
+void Segmenter_final::Callback(const sensor_msgs::PointCloud2& msg) {
   PointCloudC::Ptr cloud(new PointCloudC());
   pcl::fromROSMsg(msg, *cloud);
   PointCloudC::Ptr filtered_cloud(new PointCloudC());
@@ -139,9 +146,12 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
   std::vector<Object> objects;
   SegmentObjects(filtered_cloud, &objects);
   
+  // Choose the target with max confidence
+  double max_confidence = 0;
+  Object target;
   for (size_t i = 0; i < objects.size(); ++i) {
 
-    const Object& object = objects[i];
+    Object& object = objects[i];
     // Publish a bounding box around it.
     visualization_msgs::Marker object_marker;
     object_marker.ns = "objects";
@@ -184,15 +194,30 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
     name_marker.text = ss.str();
     markers_pub_.publish(name_marker);
     
+    // Get the target object with highest confidence
+    if (name != "" && name == target_.name && confidence > max_confidence) {
+      object.name = name;
+      object.confidence = confidence;
+      target = object;
+    }
+  if (name != "" ) {
+    perception_msgs::Object object_msg = object_to_msg(target);
+    object_msg.bin_id = target_.bin_id;
+    objects_pub_.publish(object_msg);
+  
+  }
     
-    // Publish the object list
-    // To do: add bin id
-    perception_msgs::Object object_msg;
-    object_msg = object_to_msg(object);
-//    std::vector<perception_msgs::Object> objects;
-    perception_msgs::ObjectList objects;
-    objects.objects.push_back(object_msg);
-  objects_pub_.publish(objects); 
+    
+    
+//    // Publish the object list
+//    // To do: add bin id
+//    perception_msgs::Object object_msg;
+//    object_msg = object_to_msg(object, name);
+////    std::vector<perception_msgs::Object> objects;
+//    perception_msgs::ObjectList objects;
+//    objects.objects.push_back(object_msg);
+//  objects_pub_.publish(objects); 
+  
 
 }
 
@@ -200,7 +225,7 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
 
 
 
-void Segmenter::Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+void Segmenter_final::Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices)
     {
         double cluster_tolerance;
@@ -216,7 +241,7 @@ void Segmenter::Euclid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         euclid.extract(*indices);
     }
     
-void Segmenter::RegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+void Segmenter_final::RegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices)
     {
         double smoothness_thresh, curv_thresh;
@@ -256,7 +281,7 @@ void Segmenter::RegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         reg.extract(*indices);
     }
     
-void Segmenter::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+void Segmenter_final::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices)
     {
         float distance_thresh, point_color_thresh, region_color_thresh;

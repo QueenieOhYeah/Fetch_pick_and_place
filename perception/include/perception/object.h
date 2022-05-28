@@ -18,12 +18,25 @@ struct Object {
   geometry_msgs::Vector3 dimensions;
 };
 
-perception_msgs::Object object_to_msg(Object object, std::string name) {
+perception_msgs::Object object_to_msg(Object object) {
   perception_msgs::Object object_msg;
-  object_msg.name = name;
+  object_msg.name = object.name;
+  object_msg.confidence = object.confidence;
   object_msg.pose = object.pose;
   return object_msg;
 }
+
+/*struct Target {*/
+/*  std::string name;*/
+/*  int bin_id;*/
+/*};*/
+
+/*Target object_to_msg(perception_msgs::Target msg) {*/
+/*  Target target;*/
+/*  target.name = msg.name;*/
+/*  target*/
+/*  return object_msg;*/
+/*}*/
 
 }  // namespace perception
 
