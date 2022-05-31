@@ -484,6 +484,20 @@ target_link_libraries(perception_perception_core
   ${catkin_LIBRARIES}
 )
 
+## for 3d t0 2d executable
+add_executable(perception_3d_to_2d src/3d_to_2d.cpp)
+set_target_properties(perception_3d_to_2d PROPERTIES OUTPUT_NAME 3d_to_2d PREFIX "")
+add_dependencies(perception_3d_to_2d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(perception_3d_to_2d
+  perception_crop
+  perception_downsampler
+  perception_final_segmentation
+  perception_object_recognizer
+  perception_feature_extraction
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############

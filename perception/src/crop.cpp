@@ -64,6 +64,7 @@ void Cropper::Callback(const sensor_msgs::PointCloud2& msg) {
   
   pcl::CropBox<PointC> crop;
   crop.setInputCloud(cloud);
+  crop.setKeepOrganized(true);
   crop.setMin(min_pt);
   crop.setMax(max_pt);
   //crop.setTransform(transform);
