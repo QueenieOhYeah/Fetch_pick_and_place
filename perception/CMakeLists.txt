@@ -270,6 +270,13 @@ project(perception)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+#set(opencv2_DIR "/home/dell/opencv-3.4.14")
+#set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
+set(OpenCV_DIR "/opt/intel/openvino_2021.4.752/opencv/cmake")
+#include_directories(${OpenCV_INCLUDE_DIRS})
+
+
 find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   rosbag
@@ -278,6 +285,9 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   perception_msgs
   tf
+  OpenCV
+  cv_bridge
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -384,6 +394,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -448,13 +459,25 @@ add_executable(perception_point_cloud_demo src/point_cloud_demo.cpp)
 set_target_properties(perception_point_cloud_demo PROPERTIES OUTPUT_NAME point_cloud_demo PREFIX "")
 add_dependencies(perception_point_cloud_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-
 target_link_libraries(perception_point_cloud_demo
   perception_crop
   perception_downsampler
   perception_segmentation
   perception_object_recognizer
   perception_feature_extraction
+  ${catkin_LIBRARIES}
+)
+## for publish image executable
+add_executable(perception_publish_image src/publish_image.cpp)
+set_target_properties(perception_publish_image PROPERTIES OUTPUT_NAME publish_image PREFIX "")
+add_dependencies(perception_publish_image ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(perception_publish_image
+#  perception_crop
+#  perception_downsampler
+#  perception_segmentation
+#  perception_object_recognizer
+#  perception_feature_extraction
   ${catkin_LIBRARIES}
 )
 
