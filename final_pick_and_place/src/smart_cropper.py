@@ -49,8 +49,9 @@ class SmartCropper(object):
 
     def callback(self, msg):
         self.markers = msg.markers
-        marker = self.markers[0]
-        self.crop(marker)
+        if self.markers:
+            marker = self.markers[0]
+            self.crop(marker)
         
     def target_callback(self, msg):
         self.target_bin = msg.bin_id
@@ -60,7 +61,7 @@ class SmartCropper(object):
     def crop(self, marker):
         WIDTH = 0.2
         HEIGHT = 0.2
-        DEPTH = 0.3
+        DEPTH = 0.18
         SHIFT = Point(0.5, 0.13, 0.8)
 #        bin_id = rospy.get_param("bin_id", 1)
 #         bin_id = 2
@@ -68,15 +69,14 @@ class SmartCropper(object):
         if self.target_bin == 1:
             WIDTH = 0.26
             HEIGHT = 0.14
-            DEPTH = 0.27
+            DEPTH = 0.24
             SHIFT = Point(0.38, 0.29, 0.13)
 
         if self.target_bin == 2:
             WIDTH = 0.1
             HEIGHT = 0.11
-            DEPTH = 0.27
+            DEPTH = 0.24
             SHIFT = Point(0.43, 0.075, 0.11)
-        print("here")
         #cropped cloud
         rospy.set_param("crop_min_x", -HEIGHT/2)
         rospy.set_param("crop_min_y", -WIDTH/2)
@@ -88,9 +88,9 @@ class SmartCropper(object):
         
 #        position, orientation, euler = self.get_shifted_pose(SHIFT, marker)
         # For real robot
-        position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, 'head_camera_rgb_optical_frame')
+        # position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, 'head_camera_rgb_optical_frame')
         # For simulation
-        #position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, 'base_link')
+        position, orientation, euler = self.get_shifted_pose(SHIFT, marker.id, 'base_link')
 
         
         rospy.set_param("t_x", position.x.item());

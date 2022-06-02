@@ -270,13 +270,6 @@ project(perception)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
-#set(opencv2_DIR "/home/dell/opencv-3.4.14")
-#set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
-set(OpenCV_DIR "/opt/intel/openvino_2021.4.752/opencv/cmake")
-#include_directories(${OpenCV_INCLUDE_DIRS})
-
-
 find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   rosbag
@@ -285,9 +278,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   perception_msgs
   tf
-  OpenCV
-  cv_bridge
-  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -394,7 +384,6 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -409,19 +398,22 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(perception_save_cloud_main src/save_cloud_main.cpp)
-
+add_executable(perception_transform_cloud_main src/transform_cloud.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 set_target_properties(perception_save_cloud_main PROPERTIES OUTPUT_NAME save_cloud PREFIX "")
-
+set_target_properties(perception_transform_cloud_main PROPERTIES OUTPUT_NAME transform_cloud PREFIX "")
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(perception_save_cloud_main ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(perception_transform_cloud_main ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(perception_save_cloud_main
+   ${catkin_LIBRARIES}
+)
+target_link_libraries(perception_transform_cloud_main
    ${catkin_LIBRARIES}
 )
 
@@ -459,25 +451,13 @@ add_executable(perception_point_cloud_demo src/point_cloud_demo.cpp)
 set_target_properties(perception_point_cloud_demo PROPERTIES OUTPUT_NAME point_cloud_demo PREFIX "")
 add_dependencies(perception_point_cloud_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+
 target_link_libraries(perception_point_cloud_demo
   perception_crop
   perception_downsampler
   perception_segmentation
   perception_object_recognizer
   perception_feature_extraction
-  ${catkin_LIBRARIES}
-)
-## for publish image executable
-add_executable(perception_publish_image src/publish_image.cpp)
-set_target_properties(perception_publish_image PROPERTIES OUTPUT_NAME publish_image PREFIX "")
-add_dependencies(perception_publish_image ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(perception_publish_image
-#  perception_crop
-#  perception_downsampler
-#  perception_segmentation
-#  perception_object_recognizer
-#  perception_feature_extraction
   ${catkin_LIBRARIES}
 )
 
