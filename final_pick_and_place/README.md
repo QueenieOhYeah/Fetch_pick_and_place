@@ -30,3 +30,28 @@ rosrun final_pick_and_place pick_and_place.py
 ```
 rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or something else)
 ```
+
+### Use Human intelligent
+```
+rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
+```
+#### Transform cloud point to base_link frame
+```
+rosrun perception transform_cloud
+```
+#### Get input and search for bin
+```
+rosrun final_pick_and_place read_database.py `rospack find final_pick_and_place`/data/data.csv
+```
+#### Type in terminal to provide input
+```
+rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or something else)
+```
+#### Human interface
+```
+rosrun perception crop.py
+```
+#### Launch perception
+```
+roslaunch perception object_detection2_final_real.launch data_dir:=`rospack find perception`/data/combined_labels_3
+```
