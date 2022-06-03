@@ -53,5 +53,5 @@ rosrun perception crop.py
 ```
 #### Launch perception
 ```
-roslaunch perception object_detection2_final_real.launch data_dir:=`rospack find perception`/data/combined_labels_3
+roslaunch perception object_detection2_final_real2.launch data_dir:=`rospack find perception`/data/combined_labels_3
 ```
