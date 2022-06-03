@@ -32,6 +32,7 @@ class Segmenter {
                            std::vector<pcl::PointIndices> *indices);
   void ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices);
+  void CutPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
   
 // Does a complete bin segmentation pipeline.
 //

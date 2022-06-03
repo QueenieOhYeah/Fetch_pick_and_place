@@ -34,6 +34,8 @@ class Segmenter_final {
   void ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices);
   void UpdateTarget(const perception_msgs::Target& target);
+  void CutPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr new_cloud);
+  
   
 // Does a complete bin segmentation pipeline.
 //
