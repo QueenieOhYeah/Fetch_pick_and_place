@@ -1,4 +1,4 @@
-### Lab34
+## Lab34
 ```
 rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
 ```
@@ -31,7 +31,7 @@ rosrun final_pick_and_place pick_and_place.py
 rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or something else)
 ```
 
-### Use Human intelligent
+## Use Human intelligent
 ```
 rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
 ```
