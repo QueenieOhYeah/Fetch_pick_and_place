@@ -19,15 +19,15 @@ int main(int argc, char** argv) {
   std::string data_dir(argv[1]);
   
   ros::NodeHandle nh;
-  ros::Publisher crop_pub =
-      nh.advertise<sensor_msgs::PointCloud2>("cropped_cloud", 1, true);
-  perception::Cropper cropper(crop_pub);
-  ros::Subscriber crop_sub =
-      nh.subscribe("cloud_in", 1, &perception::Cropper::Callback, &cropper);
+//  ros::Publisher crop_pub =
+//      nh.advertise<sensor_msgs::PointCloud2>("cropped_cloud", 1, true);
+//  perception::Cropper cropper(crop_pub);
+//  ros::Subscriber crop_sub =
+//      nh.subscribe("cloud_in", 1, &perception::Cropper::Callback, &cropper);
 
 //  ros::Publisher downsample_pub =
 //      nh.advertise<sensor_msgs::PointCloud2>("downsampled_cloud", 1, true);
-//  perception::Downsampler downsampler(downsample_pub);
+//  perception::Downsampler downsampler(downsample_pub);ge
 //  ros::Subscriber downsample_sub =
 //      nh.subscribe("cropped_cloud", 1, &perception::Downsampler::Callback, &downsampler);
   
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   perception::Segmenter_final segmenter(segment_pub, marker_pub, object_pub, recognizer);
   
   ros::Subscriber segment_sub =
-  nh.subscribe("cropped_cloud", 1, &perception::Segmenter_final::Callback, &segmenter);
+  nh.subscribe("cloud_in", 1, &perception::Segmenter_final::Callback, &segmenter);
   ros::Subscriber target_sub =
       nh.subscribe("final_pick_and_place/target", 1, &perception::Segmenter_final::UpdateTarget, &segmenter);  
 //      nh.subscribe("cloud_in", 1, &perception::Segmenter::Callback, &segmenter);

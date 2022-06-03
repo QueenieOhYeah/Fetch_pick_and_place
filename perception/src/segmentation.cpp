@@ -18,6 +18,7 @@
 #include "perception/object_recognizer.h"
 #include "perception_msgs/ObjectList.h"
 #include "perception_msgs/Object.h"
+#include <pcl/common/projection_matrix.h>
 
 typedef pcl::PointXYZRGB PointC;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
@@ -36,7 +37,7 @@ void Segmenter::SegmentBinObjects(PointCloudC::Ptr cloud,
     int function_id;
     ros::param::param("function", function_id, 1);
     
-    std::cout << function_id << std::endl;
+//    std::cout << function_id << std::endl;
     
     if (function_id == 1) {
       Euclid(cloud, indices);
@@ -127,12 +128,27 @@ void Segmenter::GetAxisAlignedBoundingBox(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
                                
 }
 
+void Segmenter::CutPointCloud(const PointCloudC::Ptr cloud) {
+  int top_right_x, top_right_y, buttom_left_x, buttom_left_y;
+//  ros::param::param("top_right_x", top_right_x, 0);
+//  ros::param::param("top_right_y", top_right_y, 0);
+//  ros::param::param("buttom_left_x", buttom_left_x, 0);
+//  ros::param::param("buttom_left_y", buttom_left_y, 0); 
+//  (*cloud).at(top_right_x,top_right_y).r = 255;
+//  (*cloud).at(top_right_x,top_right_y).g = 0;
+//  (*cloud).at(top_right_x,top_right_y).b = 0;
+//  ROS_INFO("Depth of the point is %f", (*cloud).at(top_right_x,top_right_y).z);
+  
+}
 
 void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
   PointCloudC::Ptr cloud(new PointCloudC());
   pcl::fromROSMsg(msg, *cloud);
   PointCloudC::Ptr filtered_cloud(new PointCloudC());
   std::vector<int> index;
+  
+  CutPointCloud(cloud);
+  ROS_INFO("I am here");
   pcl::removeNaNFromPointCloud(*cloud, *filtered_cloud, index);
 
   
@@ -267,11 +283,11 @@ void Segmenter::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         ros::param::param("point_color_thresh", point_color_thresh, 6.0f);
         ros::param::param("region_color_thresh", region_color_thresh, 5.0f);
 
-        std::cout << distance_thresh << std::endl;
-        std::cout << min_cluster_size << std::endl;
-        std::cout << max_cluster_size << std::endl;
-        std::cout << point_color_thresh << std::endl;
-        std::cout << region_color_thresh << std::endl;
+//        std::cout << distance_thresh << std::endl;
+//        std::cout << min_cluster_size << std::endl;
+//        std::cout << max_cluster_size << std::endl;
+//        std::cout << point_color_thresh << std::endl;
+//        std::cout << region_color_thresh << std::endl;
         
         pcl::search::Search <pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
         pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;

@@ -37,7 +37,7 @@ void Segmenter_final::SegmentBinObjects(PointCloudC::Ptr cloud,
     int function_id;
     ros::param::param("function", function_id, 1);
     
-    std::cout << function_id << std::endl;
+//    std::cout << function_id << std::endl;
     
     if (function_id == 1) {
       Euclid(cloud, indices);
@@ -84,6 +84,54 @@ void Segmenter_final::SegmentBinObjects(PointCloudC::Ptr cloud,
 //    points_pub_.publish(msg_out);
 
 }
+
+void Segmenter_final::CutPointCloud(PointCloudC::Ptr cloud, PointCloudC::Ptr new_cloud) {
+  int top_right_x, top_right_y, buttom_left_x, buttom_left_y;
+  ros::param::param("top_right_x", top_right_x, 0);
+  ros::param::param("top_right_y", top_right_y, 0);
+  ros::param::param("buttom_left_x", buttom_left_x, 0);
+  ros::param::param("buttom_left_y", buttom_left_y, 0);
+//  PointCloudC::Ptr cloud_cluster (new PointCloudC());
+//  for (int x = top_right_x; x <= buttom_left_x; x++) {
+//    for (int y = top_right_y; y <= buttom_left_y; y++) {
+//      (*cloud).at(top_right_x,top_right_y).r = 255;
+//      (*cloud).at(top_right_x,top_right_y).g = 0;
+//      (*cloud).at(top_right_x,top_right_y).b = 0;
+//      new_cloud->push_back((*cloud).at(top_right_x,top_right_y));
+//    }
+//  }
+//  ROS_INFO("New cloud at size %f", new_cloud -> size());
+  pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
+  inliers -> header = cloud -> header;
+  for (int x = top_right_x; x <= buttom_left_x; x++) {
+    for (int y = top_right_y; y <= buttom_left_y; y++) {
+      inliers->indices.push_back(y * 640 + x);   
+    }
+  }
+  
+  pcl::ExtractIndices<PointC> extract;
+  extract.setInputCloud (cloud);
+  extract.setIndices (inliers);
+  extract.setNegative (false);
+  extract.filter (*new_cloud);
+  std::cerr << "cloud width" << new_cloud->width << " data points." << std::endl;
+  
+  
+//  visualization_msgs::Marker human_marker;
+//  human_marker.ns = "human_objects";
+//  human_marker.id = 100;
+//  human_marker.header.frame_id = "base_link";
+//  human_marker.type = visualization_msgs::Marker::CUBE;
+//  human_marker.pose = object.pose;
+//  human_marker.scale = object.dimensions;
+//  human_marker.color.r = 1;
+//  human_marker.color.a = 0.3;
+//  human_marker.lifetime = ros::Duration(3);
+//  markers_pub_.publish(human_marker);   
+//  ROS_INFO("Depth of the point is %f", (*cloud).at(top_right_x,top_right_y).z);
+  
+}
+
 
 void Segmenter_final::SegmentObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                           std::vector<Object>* objects) {
@@ -140,7 +188,30 @@ void Segmenter_final::Callback(const sensor_msgs::PointCloud2& msg) {
   pcl::fromROSMsg(msg, *cloud);
   PointCloudC::Ptr filtered_cloud(new PointCloudC());
   std::vector<int> index;
-  pcl::removeNaNFromPointCloud(*cloud, *filtered_cloud, index);
+  
+  
+  PointCloudC::Ptr new_cloud(new PointCloudC());
+  CutPointCloud(cloud, new_cloud);
+  
+  pcl::removeNaNFromPointCloud(*new_cloud, *filtered_cloud, index);
+  geometry_msgs::Pose human_pose;
+  geometry_msgs::Vector3 human_dimensions;
+  GetAxisAlignedBoundingBox(filtered_cloud, &human_pose, &human_dimensions);
+
+  
+  visualization_msgs::Marker human_marker;
+  human_marker.ns = "human_objects";
+  human_marker.id = 100;
+  human_marker.header.frame_id = "base_link";
+  human_marker.type = visualization_msgs::Marker::CUBE;
+  human_marker.pose = human_pose;
+  human_marker.scale = human_dimensions;
+  human_marker.color.r = 1;
+  human_marker.color.a = 0.3;
+  human_marker.lifetime = ros::Duration(3);
+  markers_pub_.publish(human_marker); 
+  
+//  pcl::removeNaNFromPointCloud(*cloud, *filtered_cloud, index);
 
   
   std::vector<Object> objects;
@@ -192,6 +263,7 @@ void Segmenter_final::Callback(const sensor_msgs::PointCloud2& msg) {
     name_marker.color.b = 1.0;
     name_marker.color.a = 1.0;
     name_marker.text = ss.str();
+    object_marker.lifetime = ros::Duration(3);
     markers_pub_.publish(name_marker);
     
     // Get the target object with highest confidence
@@ -264,8 +336,6 @@ void Segmenter_final::RegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud
         normal_estimator.setKSearch (k_search);
         normal_estimator.compute (*normals);
         
-        
-       
         pcl::RegionGrowing<pcl::PointXYZ, pcl::Normal> reg;
         reg.setMinClusterSize (min_cluster_size);
         reg.setMaxClusterSize (max_cluster_size);
@@ -292,11 +362,11 @@ void Segmenter_final::ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr 
         ros::param::param("point_color_thresh", point_color_thresh, 6.0f);
         ros::param::param("region_color_thresh", region_color_thresh, 5.0f);
 
-        std::cout << distance_thresh << std::endl;
-        std::cout << min_cluster_size << std::endl;
-        std::cout << max_cluster_size << std::endl;
-        std::cout << point_color_thresh << std::endl;
-        std::cout << region_color_thresh << std::endl;
+//        std::cout << distance_thresh << std::endl;
+//        std::cout << min_cluster_size << std::endl;
+//        std::cout << max_cluster_size << std::endl;
+//        std::cout << point_color_thresh << std::endl;
+//        std::cout << region_color_thresh << std::endl;
         
         pcl::search::Search <pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
         pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;
