@@ -10,6 +10,7 @@ project(perception_msgs)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   geometry_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
