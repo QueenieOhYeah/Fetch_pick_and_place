@@ -72,3 +72,9 @@ rostopic echo final_pick_and_place/target
 ```
 rostopo /targeted_object
 ```
+## Initialization
+```
+roslaunch applications nav_rviz.launch
+roslaunch robot_api ar_desktop.launch cam_image_topic:=/head_camera/depth_registered/points
+rosrun final_pick_and_place initialize.py
+```
