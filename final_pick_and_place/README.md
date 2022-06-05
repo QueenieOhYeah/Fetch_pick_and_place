@@ -31,7 +31,7 @@ rosrun final_pick_and_place pick_and_place.py
 rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or something else)
 ```
 
-## Use Human intelligent
+## Use Human intelligent on real robot
 ```
 rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
 ```
@@ -39,19 +39,36 @@ rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
 ```
 rosrun perception transform_cloud
 ```
+#### Launch ar tag detection
+```
+roslaunch robot_api ar_desktop.launch cam_image_topic:=/transform_point_cloud
+```
 #### Get input and search for bin
 ```
 rosrun final_pick_and_place read_database.py `rospack find final_pick_and_place`/data/data.csv
 ```
-#### Type in terminal to provide input
+#### Human intelligence interface
 ```
-rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or something else)
-```
-#### Human interface
-```
-rosrun perception crop.py
+rosrun perception human.py
 ```
 #### Launch perception
 ```
-roslaunch perception object_detection2_final_real2.launch data_dir:=`rospack find perception`/data/combined_labels_3
+roslaunch perception object_detection2_final_real.launch data_dir:=`rospack find perception`/data/combined_labels_3
+```
+#### Run smart cropper
+```
+rosruninal_pick_and_place smart_cropper.py
+```
+### Terminal interfaces
+#### Input
+```
+rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or something else)
+```
+#### Check if input is received
+```
+rostopic echo final_pick_and_place/target
+```
+#### Check the detected pose
+```
+rostopo /targeted_object
 ```
