@@ -57,7 +57,7 @@ roslaunch perception object_detection2_final_real.launch data_dir:=`rospack find
 ```
 #### Run smart cropper
 ```
-rosruninal_pick_and_place smart_cropper.py
+rosrun final_pick_and_place smart_cropper.py
 ```
 ### Terminal interfaces
 #### Input
