@@ -33,7 +33,7 @@ rostopic pub final_pick_and_place/object_name std_msgs/String medicinebottle(or 
 
 ## Use Human intelligent on real robot
 ```
-rosrun rviz rviz -d `rospack find applications`/config/marker.rviz
+roslaunch final_pick_and_place rviz_launch.launch
 ```
 #### Transform cloud point to base_link frame
 ```
