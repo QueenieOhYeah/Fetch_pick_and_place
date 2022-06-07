@@ -59,7 +59,7 @@ rosrun final_pick_and_place smart_cropper.py
 #### AI
 ```
 rosparam set human 0
-rosrun perception human.py
+mask_rcnn.py
 ```
 #### Human intelligence interface
 ```
