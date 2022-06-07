@@ -34,7 +34,10 @@ class Segmenter_final {
   void ColorRegionGrowing(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
                            std::vector<pcl::PointIndices> *indices);
   void UpdateTarget(const perception_msgs::Target& target);
+  void UpdateRCNN(const perception_msgs::ObjectList& object_list);
   void CutPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr new_cloud);
+  void RCNNCutPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr new_cloud);
+  void GetSuggestPoint(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointXYZRGB* suggest_point);
   
   
 // Does a complete bin segmentation pipeline.
@@ -50,6 +53,7 @@ class Segmenter_final {
   ros::Publisher objects_pub_;
   ObjectRecognizer recognizer_;
   perception_msgs::Target target_;
+  std::vector<int> indices_;
   
 };
 }  // namespace perception

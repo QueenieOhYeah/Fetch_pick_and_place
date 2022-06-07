@@ -4,10 +4,11 @@
 namespace perception {
 class Cropper {
  public:
-  Cropper(const ros::Publisher& pub);
+  Cropper(const ros::Publisher& pub, const ros::Publisher& organized_pub);
   void Callback(const sensor_msgs::PointCloud2& msg);
 
  private:
   ros::Publisher pub_;
+  ros::Publisher organized_pub_;
 };
 }  // namespace perception

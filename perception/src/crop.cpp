@@ -7,7 +7,7 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudC;
 
 
 namespace perception {
-Cropper::Cropper(const ros::Publisher& pub) : pub_(pub) {}
+Cropper::Cropper(const ros::Publisher& pub, const ros::Publisher& organized_pub) : pub_(pub),  organized_pub_(organized_pub){}
 
 
 void Cropper::Callback(const sensor_msgs::PointCloud2& msg) {
@@ -60,7 +60,19 @@ void Cropper::Callback(const sensor_msgs::PointCloud2& msg) {
 //  transform.rotate(Eigen::AngleAxisf(r_x, Eigen::Vector3f(1, 0, 0)));
 //  transform.rotate(Eigen::AngleAxisf(r_y, Eigen::Vector3f(0, 1, 0)));
 //  transform.rotate(Eigen::AngleAxisf(r_z, Eigen::Vector3f(0, 0, 1)));
-
+  pcl::CropBox<PointC> crop2;
+  PointCloudC::Ptr cropped_cloud2(new PointCloudC());
+  crop2.setInputCloud(cloud);
+  crop2.setMin(min_pt);
+  crop2.setMax(max_pt);
+  //crop.setTransform(transform);
+  crop2.setTranslation(translation);
+  crop2.setRotation(rotation);
+  crop2.filter(*cropped_cloud2);
+  ROS_INFO("Cropped to %ld points", cropped_cloud2->size());
+  sensor_msgs::PointCloud2 msg_out2;
+  pcl::toROSMsg(*cropped_cloud2, msg_out2);
+  pub_.publish(msg_out2);
   
   pcl::CropBox<PointC> crop;
   crop.setInputCloud(cloud);
@@ -75,6 +87,21 @@ void Cropper::Callback(const sensor_msgs::PointCloud2& msg) {
   //converse back to sensor_msgs::PointClouds2
   sensor_msgs::PointCloud2 msg_out;
   pcl::toROSMsg(*cropped_cloud, msg_out);
-  pub_.publish(msg_out);
+  organized_pub_.publish(msg_out);
+  
+  // pcl::CropBox<PointC> crop2;
+  // PointCloudC::Ptr cropped_cloud2(new PointCloudC());
+  // crop2.setInputCloud(cloud);
+  // crop2.setKeepOrganized(false);
+  // crop2.setMin(min_pt);
+  // crop2.setMax(max_pt);
+  // //crop.setTransform(transform);
+  // crop2.setTranslation(translation);
+  // crop2.setRotation(rotation);
+  // crop2.filter(*cropped_cloud2);
+  // ROS_INFO("Cropped to %ld points", cropped_cloud2->size());
+  // sensor_msgs::PointCloud2 msg_out2;
+  // pub_.publish(msg_out);
+  // pcl::toROSMsg(*cropped_cloud2, msg_out2);
 }
 }

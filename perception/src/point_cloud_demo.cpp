@@ -19,9 +19,11 @@ int main(int argc, char** argv) {
   std::string data_dir(argv[1]);
   
   ros::NodeHandle nh;
+  ros::Publisher crop_organized_pub =
+     nh.advertise<sensor_msgs::PointCloud2>("cropped_organized_cloud", 1, true);
   ros::Publisher crop_pub =
       nh.advertise<sensor_msgs::PointCloud2>("cropped_cloud", 1, true);
-  perception::Cropper cropper(crop_pub);
+  perception::Cropper cropper(crop_pub, crop_organized_pub);
   ros::Subscriber crop_sub =
       nh.subscribe("cloud_in", 1, &perception::Cropper::Callback, &cropper);
   ros::Publisher downsample_pub =

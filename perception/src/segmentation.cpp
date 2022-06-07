@@ -206,9 +206,9 @@ void Segmenter::Callback(const sensor_msgs::PointCloud2& msg) {
     perception_msgs::Object object_msg;
     object_msg = object_to_msg(object);
 //    std::vector<perception_msgs::Object> objects;
-    perception_msgs::ObjectList objects;
-    objects.objects.push_back(object_msg);
-  objects_pub_.publish(objects); 
+   // perception_msgs::ObjectList objects;
+   // objects.objects.push_back(object_msg);
+  //objects_pub_.publish(objects); 
 
 }
 

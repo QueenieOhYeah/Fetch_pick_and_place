@@ -1,6 +1,6 @@
 <launch>
   <arg name="data_dir" />
-  <param name="function" value="3" />
+  <param name="function" value="1" />
   <param name="size_weight" value="3" />
   <param name="creg_min_cluster_size" value="1000" />
   <param name="creg_max_cluster_size" value="5000" />
