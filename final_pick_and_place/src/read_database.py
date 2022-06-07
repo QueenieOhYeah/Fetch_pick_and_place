@@ -27,11 +27,11 @@ class DatabaseReader(object):
                 #if current rows 2nd value is equal to input, print that row
                 if object_name == row[0]:
                     return object_name, row[1]
-            csv_file.close()
             return None
 
 
-        except:
+        except Exception as e:
+            print(e)
             return None
             
     def process_input(self, data):

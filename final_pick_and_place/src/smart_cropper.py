@@ -70,13 +70,13 @@ class SmartCropper(object):
             WIDTH = 0.26
             HEIGHT = 0.14
             DEPTH = 0.24
-            SHIFT = Point(0.38, 0.29, 0.13)
+            SHIFT = Point(0.38, 0.29, 0.15)
 
         if self.target_bin == 2:
             WIDTH = 0.1
             HEIGHT = 0.11
             DEPTH = 0.24
-            SHIFT = Point(0.43, 0.075, 0.11)
+            SHIFT = Point(0.43, 0.08, 0.15)
         #cropped cloud
         rospy.set_param("crop_min_x", -HEIGHT/2)
         rospy.set_param("crop_min_y", -WIDTH/2)

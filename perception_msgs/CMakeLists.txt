@@ -53,6 +53,7 @@ find_package(catkin REQUIRED COMPONENTS
    Object.msg
    ObjectList.msg
    Target.msg
+   Indices.msg
 
  )
 
@@ -74,7 +75,7 @@ find_package(catkin REQUIRED COMPONENTS
  generate_messages(
    DEPENDENCIES
    geometry_msgs
-#   std_msgs  # Or other packages containing msgs
+   std_msgs  # Or other packages containing msgs
  )
 
 ################################################
