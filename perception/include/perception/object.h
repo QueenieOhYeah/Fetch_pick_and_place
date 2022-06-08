@@ -21,7 +21,7 @@ struct Object {
 perception_msgs::Object object_to_msg(Object object) {
   perception_msgs::Object object_msg;
   object_msg.name = object.name;
-  object_msg.confidence = object.confidence;
+/*  object_msg.confidence = object.confidence;*/
   object_msg.pose = object.pose;
   return object_msg;
 }

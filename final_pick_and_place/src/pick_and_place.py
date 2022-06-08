@@ -36,7 +36,7 @@ def main():
     rospy.Subscriber('targeted_object', perception_msgs.msg.Object, callback)
     # Only receive a target object, structure:
     # string name # Name of the object
-    # float64 confidence # Confidence
+    # geometry_msgs/Pose suggested_point # will be (-1,-1,-1) if no suggested point is given
     # geometry_msgs/Pose pose # Object pose
     # int32 bin_id
     rospy.spin()

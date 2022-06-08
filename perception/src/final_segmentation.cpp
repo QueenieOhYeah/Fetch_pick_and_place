@@ -118,26 +118,17 @@ void Segmenter_final::SegmentBinObjects(PointCloudC::Ptr cloud,
 }
 
 void Segmenter_final::CutPointCloud(PointCloudC::Ptr cloud, PointCloudC::Ptr new_cloud) {
-  int top_right_x, top_right_y, buttom_left_x, buttom_left_y;
+  int top_right_x, top_right_y, bottom_left_x, bottom_left_y;
   ros::param::param("top_right_x", top_right_x, -1);
   ros::param::param("top_right_y", top_right_y, -1);
-  ros::param::param("buttom_left_x", buttom_left_x, -1);
-  ros::param::param("buttom_left_y", buttom_left_y, -1);
-//  PointCloudC::Ptr cloud_cluster (new PointCloudC());
-//  for (int x = top_right_x; x <= buttom_left_x; x++) {
-//    for (int y = top_right_y; y <= buttom_left_y; y++) {
-//      (*cloud).at(top_right_x,top_right_y).r = 255;
-//      (*cloud).at(top_right_x,top_right_y).g = 0;
-//      (*cloud).at(top_right_x,top_right_y).b = 0;
-//      new_cloud->push_back((*cloud).at(top_right_x,top_right_y));
-//    }
-//  }
-//  ROS_INFO("New cloud at size %f", new_cloud -> size());
+  ros::param::param("bottom_left_x", bottom_left_x, -1);
+  ros::param::param("bottom_left_y", bottom_left_y, -1);
+
   if (top_right_x < 0) return;
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
   inliers -> header = cloud -> header;
-  for (int x = top_right_x; x <= buttom_left_x; x++) {
-    for (int y = top_right_y; y <= buttom_left_y; y++) {
+  for (int x = top_right_x; x <= bottom_left_x; x++) {
+    for (int y = top_right_y; y <= bottom_left_y; y++) {
       inliers->indices.push_back(y * 640 + x);   
     }
   }
@@ -181,6 +172,11 @@ void Segmenter_final::GetSuggestPoint(PointCloudC::Ptr cloud, PointC* suggest_po
     ros::param::set("suggested_point_x", suggest_point->x);
     ros::param::set("suggested_point_y", suggest_point->y);
     ros::param::set("suggested_point_z", suggest_point->z);
+  } else {
+    ros::param::set("suggested_point_x", -1);
+    ros::param::set("suggested_point_y", -1);
+    ros::param::set("suggested_point_z", -1);
+  
   }
 }
 
@@ -253,6 +249,13 @@ void Segmenter_final::Callback(const sensor_msgs::PointCloud2& msg) {
     GetSuggestPoint(cloud, &suggest_point);
   }
   else {
+    ros::param::set("top_right_x", -1);
+    ros::param::set("top_right_y", -1);
+    ros::param::set("bottom_left_x", -1);
+    ros::param::set("bottom_left_y", -1);
+    ros::param::set("suggested_point_x", -1);
+    ros::param::set("suggested_point_y", -1);
+    ros::param::set("suggested_point_z", -1);
     RCNNCutPointCloud(cloud, new_cloud);
   }
   
@@ -298,56 +301,21 @@ void Segmenter_final::Callback(const sensor_msgs::PointCloud2& msg) {
     object_marker.color.a = 0.3;
     object_marker.lifetime = ros::Duration(8);
     markers_pub_.publish(object_marker);
-    
-    // // Recognize the object.
-    // std::string name;
-    // double confidence;
-    // // TODO: recognize the object with the recognizer_. /////////////////////////////
-    // recognizer_.Recognize(object, &name, &confidence);
-    // confidence = round(1000 * confidence) / 1000;
-
-    // std::stringstream ss;
-    // ss << name << " (" << confidence << ")";
-
-    // // Publish the recognition result.
-    // visualization_msgs::Marker name_marker;
-    // name_marker.ns = "recognition";
-    // name_marker.id = i;
-    // name_marker.header.frame_id = "base_link";
-    // name_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-    // name_marker.pose.position = object.pose.position;
-    // name_marker.pose.position.z += 0.1;
-    // name_marker.pose.orientation.w = 1;
-    // name_marker.scale.x = 0.025;
-    // name_marker.scale.y = 0.025;
-    // name_marker.scale.z = 0.025;
-    // name_marker.color.r = 0;
-    // name_marker.color.g = 0;
-    // name_marker.color.b = 1.0;
-    // name_marker.color.a = 1.0;
-    // name_marker.text = ss.str();
-    // object_marker.lifetime = ros::Duration(3);
-    // markers_pub_.publish(name_marker);
-    
-    // Get the target object with highest confidence
-  //   if (name != "" && name == target_.name && confidence > max_confidence) {
-  //     object.name = name;
-  //     object.confidence = confidence;
-  //     target = object;
-  //   }
-  // if (name != "" ) {
-  //   perception_msgs::Object object_msg = object_to_msg(target);
-  //   object_msg.bin_id = target_.bin_id;
-  //   objects_pub_.publish(object_msg);
-  // ROS_INFO("objects size: %ld",
-  //           objects.size());
-  // ROS_INFO("%b",!target_.name.empty());          
+             
   if (objects.size() <= 1 && !target_.name.empty()) {
     Object& object = objects[0];
     object.name = target_.name;
-    object.confidence = 80;
+    int suggested_point_x, suggested_point_y, suggested_point_z;
+    ros::param::param("suggested_point_x", suggested_point_x, -1);
+    ros::param::param("suggested_point_y", suggested_point_y, -1);
+    ros::param::param("suggested_point_z", suggested_point_z, -1);
+    
+    
     perception_msgs::Object object_msg = object_to_msg(object);
     object_msg.bin_id = target_.bin_id;
+    object_msg.suggested_point.x = suggested_point_x;
+    object_msg.suggested_point.y = suggested_point_y;
+    object_msg.suggested_point.z = suggested_point_z;
     objects_pub_.publish(object_msg);
   
   }
